@@ -9,7 +9,8 @@ from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 # Load environment variables from .env file
-load_dotenv()
+if os.path.exists('.env'):
+    load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -278,27 +279,27 @@ def send_invoice_email(invoice_id):
         client_email = invoice.client_email
         
         subject = f"Payment Reminder: Invoice for R {invoice.invoice_amount}"
-        html_content = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; color: white; text-align: center; border-radius: 10px 10px 0 0;">
-                <h1 style="margin: 0;">{current_user.company_name}</h1>
-                <p style="margin: 5px 0 0 0; opacity: 0.9;">Payment Reminder</p>
-            </div>
-            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
-                <p>Dear {invoice.client_name},</p>
-                {invoice.generated_email.replace('\n', '<br>')}
-                <br><br>
-                <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
-                    <strong>Invoice Details:</strong><br>
-                    Amount: R {invoice.invoice_amount}<br>
-                    Due Date: {invoice.due_date}<br>
-                    Days Overdue: {invoice.days_overdue}
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; color: white; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="margin: 0;">{current_user.company_name}</h1>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Payment Reminder</p>
                 </div>
-                <br>
-                <p>Best regards,<br><strong>{current_user.company_name}</strong></p>
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <p>Dear {invoice.client_name},</p>
+                    {invoice.generated_email.replace(chr(10), '<br>')}
+                    <br><br>
+                    <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <strong>Invoice Details:</strong><br>
+                        Amount: R {invoice.invoice_amount}<br>
+                        Due Date: {invoice.due_date}<br>
+                        Days Overdue: {invoice.days_overdue}
+                    </div>
+                    <br>
+                    <p>Best regards,<br><strong>{current_user.company_name}</strong></p>
+                </div>
             </div>
-        </div>
-        """
+            """
         
         if send_email_via_sendgrid(client_email, subject, html_content):
             invoice.status = 'sent'
