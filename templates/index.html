@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Accelerator - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f8fafc;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-glass {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .invoice-item {
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .invoice-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .status-badge {
+            cursor: pointer;
+            border-radius: 20px;
+            padding: 6px 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .email-output {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 15px;
+            border-left: 4px solid var(--success);
+        }
+
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-glass">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="#">
+                <i class="fas fa-bolt me-2"></i>InvoiceAccelerator
+            </a>
+            <div class="navbar-nav ms-auto align-items-center">
+                <span class="navbar-text me-4">
+                    <i class="fas fa-building me-2"></i>Welcome, <strong class="text-dark">{{ company_name }}</strong>
+                </span>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2"></i>Account
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-chart-bar me-2"></i>Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <!-- Stats Overview -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="stats-card p-4 text-center">
+                    <i class="fas fa-receipt fa-2x mb-3"></i>
+                    <h3 id="totalInvoices">0</h3>
+                    <p class="mb-0">Total Invoices</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card p-4 text-center">
+                    <i class="fas fa-clock fa-2x mb-3"></i>
+                    <h3 id="pendingInvoices">0</h3>
+                    <p class="mb-0">Pending</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card p-4 text-center">
+                    <i class="fas fa-paper-plane fa-2x mb-3"></i>
+                    <h3 id="sentInvoices">0</h3>
+                    <p class="mb-0">Sent</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stats-card p-4 text-center">
+                    <i class="fas fa-check-circle fa-2x mb-3"></i>
+                    <h3 id="paidInvoices">0</h3>
+                    <p class="mb-0">Paid</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Invoice Generator -->
+            <div class="col-lg-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h4 class="mb-4"><i class="fas fa-magic me-2 text-primary"></i>AI Invoice Assistant</h4>
+                    <form id="invoiceForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="client_name" class="form-label fw-semibold">Client Name</label>
+                                <input type="text" class="form-control" id="client_name" required 
+                                       placeholder="e.g., ABC Suppliers">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="invoice_amount" class="form-label fw-semibold">Amount (R)</label>
+                                <input type="number" class="form-control" id="invoice_amount" required 
+                                       placeholder="e.g., 5000">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                         <label for="client_email" class="form-label fw-semibold">Client Email</label>
+                        <input type="email" class="form-control" id="client_email" required placeholder="client@company.com">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label fw-semibold">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="days_overdue" class="form-label fw-semibold">Days Overdue</label>
+                                <select class="form-control" id="days_overdue">
+                                    <option value="7">7 days</option>
+                                    <option value="15">15 days</option>
+                                    <option value="30">30+ days</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" id="generateBtn">
+                            <i class="fas fa-robot me-2"></i>Generate Chase Email
+                        </button>
+                    </form>
+
+                    <!-- Email Output -->
+                    <div class="email-output mt-4 p-4" id="emailOutput" style="display: none;">
+                        <h5><i class="fas fa-envelope me-2"></i>AI-Generated Email:</h5>
+                        <div id="generatedEmail" class="p-3 mb-3"></div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success" onclick="copyToClipboard()">
+                                <i class="fas fa-copy me-2"></i>Copy Email
+                            </button>
+                            <button class="btn btn-primary" id="sendEmailBtn" onclick="sendEmail()">
+                                <i class="fas fa-paper-plane me-2"></i>Send Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Invoices -->
+            <div class="col-lg-6">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Invoices</h4>
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadInvoices()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div id="invoicesList" style="max-height: 500px; overflow-y: auto;">
+                        <!-- Invoices will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="floating-btn" data-bs-toggle="modal" data-bs-target="#quickInvoiceModal">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentInvoiceId = null;
+
+        // Load stats and invoices when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadInvoices();
+        });
+
+        // Load dashboard statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/dashboard');
+                const stats = await response.json();
+                
+                document.getElementById('totalInvoices').textContent = stats.total_invoices;
+                document.getElementById('pendingInvoices').textContent = stats.pending_invoices;
+                document.getElementById('sentInvoices').textContent = stats.sent_invoices || 0;
+                document.getElementById('paidInvoices').textContent = stats.paid_invoices;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Form submission for generating email
+        document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+            generateBtn.disabled = true;
+
+            const formData = {
+                client_name: document.getElementById('client_name').value,
+                invoice_amount: document.getElementById('invoice_amount').value,
+                due_date: document.getElementById('due_date').value,
+                days_overdue: document.getElementById('days_overdue').value
+            };
+
+            try {
+                const response = await fetch('/generate_email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('generatedEmail').textContent = result.email;
+                    document.getElementById('emailOutput').style.display = 'block';
+                    currentInvoiceId = result.invoice_id;
+                    
+                    // Clear form
+                    document.getElementById('invoiceForm').reset();
+                    
+                    // Reload stats and invoices
+                    loadStats();
+                    loadInvoices();
+                    
+                    showAlert('Email generated successfully!', 'success');
+                } else {
+                    showAlert('Error: ' + result.error, 'danger');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'danger');
+            } finally {
+                generateBtn.innerHTML = '<i class="fas fa-robot me-2"></i>Generate Chase Email';
+                generateBtn.disabled = false;
+            }
+        });
+
+        // Load invoices from the server
+        async function loadInvoices() {
+            try {
+                const response = await fetch('/invoices');
+                const invoices = await response.json();
+                
+                const invoicesList = document.getElementById('invoicesList');
+                
+                if (invoices.length === 0) {
+                    invoicesList.innerHTML = `
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No invoices yet. Create your first one!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                invoices.forEach(invoice => {
+                    const statusClass = invoice.status === 'paid' ? 'bg-success' : 
+                                      invoice.status === 'sent' ? 'bg-primary' : 'bg-warning';
+                    const statusIcon = invoice.status === 'paid' ? 'fa-check-circle' : 
+                                     invoice.status === 'sent' ? 'fa-paper-plane' : 'fa-clock';
+                    
+                    html += `
+                        <div class="invoice-item bg-white p-3 mb-3 rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-semibold">${invoice.client_name}</h6>
+                                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                                        <span><i class="fas fa-money-bill me-1"></i>R ${invoice.invoice_amount}</span>
+                                        <span><i class="fas fa-calendar me-1"></i>Due: ${invoice.due_date}</span>
+                                        <span><i class="fas fa-clock me-1"></i>${invoice.days_overdue} days overdue</span>
+                                    </div>
+                                    <small class="text-muted"><i class="fas fa-calendar-plus me-1"></i>Created: ${invoice.created_at}</small>
+                                </div>
+                                <span class="badge ${statusClass} status-badge" onclick="updateStatus(${invoice.id}, this)">
+                                    <i class="fas ${statusIcon} me-1"></i>${invoice.status}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                invoicesList.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+            }
+        }
+
+        // Update invoice status
+        async function updateStatus(invoiceId, element) {
+            const currentStatus = element.textContent.trim();
+            let newStatus;
+            
+            // Cycle through statuses: pending → sent → paid → pending
+            if (currentStatus === 'pending') newStatus = 'sent';
+            else if (currentStatus === 'sent') newStatus = 'paid';
+            else newStatus = 'pending';
+            
+            try {
+                const response = await fetch(`/update_status/${invoiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const statusIcon = newStatus === 'paid' ? 'fa-check-circle' : 
+                                     newStatus === 'sent' ? 'fa-paper-plane' : 'fa-clock';
+                    const statusClass = newStatus === 'paid' ? 'bg-success' : 
+                                      newStatus === 'sent' ? 'bg-primary' : 'bg-warning';
+                    
+                    element.innerHTML = `<i class="fas ${statusIcon} me-1"></i>${newStatus}`;
+                    element.className = `badge ${statusClass} status-badge`;
+                    
+                    loadStats(); // Reload stats to update counts
+                    showAlert('Status updated successfully!', 'success');
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showAlert('Error updating status', 'danger');
+            }
+        }
+
+        // Send email functionality
+        async function sendEmail() {
+    if (!currentInvoiceId) {
+        showAlert('No invoice selected', 'warning');
+        return;
+    }
+
+    const sendBtn = document.getElementById('sendEmailBtn');
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    sendBtn.disabled = true;
+
+    try {
+        const response = await fetch(`/send_email/${currentInvoiceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showAlert('Email sent successfully!', 'success');
+            loadStats();
+            loadInvoices();
+        } else {
+            showAlert('Error: ' + result.error, 'danger');
+        }
+    } catch (error) {
+        showAlert('Network error. Please try again.', 'danger');
+    } finally {
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send Email';
+        sendBtn.disabled = false;
+    }
+}
+
+            const sendBtn = document.getElementById('sendEmailBtn');
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            sendBtn.disabled = true;
+
+            try {
+                // For now, we'll just mark it as sent
+                // In the next step, we'll integrate actual email sending
+                const response = await fetch(`/update_status/${currentInvoiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: 'sent' })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert('Email marked as sent! (Email integration coming next)', 'success');
+                    loadStats();
+                    loadInvoices();
+                }
+            } catch (error) {
+                showAlert('Error sending email', 'danger');
+            } finally {
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send Email';
+                sendBtn.disabled = false;
+            }
+        }
+
+        function copyToClipboard() {
+            const emailText = document.getElementById('generatedEmail').textContent;
+            navigator.clipboard.writeText(emailText).then(() => {
+                showAlert('Email copied to clipboard!', 'success');
+            });
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
