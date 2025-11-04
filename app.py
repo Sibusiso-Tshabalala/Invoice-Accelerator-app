@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+
 # Load environment variables from .env file
 if os.path.exists('.env'):
     load_dotenv()
@@ -16,13 +17,12 @@ if os.path.exists('.env'):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
 
+# Configure database - FIXED: Remove duplicate database configuration
 if os.getenv('DATABASE_URL'):
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace('postgres://', 'postgresql://')
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///invoices.db'# Change this!
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///invoices.db'
 
-# Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///invoices.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database and login manager
@@ -52,12 +52,12 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Invoice model
+# Invoice model - FIXED: Remove duplicate user_id field
 class Invoice(db.Model):
     __tablename__ = 'invoices'
     id = db.Column(db.Integer, primary_key=True)
     client_name = db.Column(db.String(100), nullable=False)
-    client_email = db.Column(db.String(100), nullable=False)  # NEW FIELD
+    client_email = db.Column(db.String(100), nullable=False)
     invoice_amount = db.Column(db.Float, nullable=False)
     due_date = db.Column(db.String(50), nullable=False)
     days_overdue = db.Column(db.Integer, default=0)
@@ -65,23 +65,17 @@ class Invoice(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    
-    # Foreign key to User
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-# User loader for Flask-Login - FIXED for SQLAlchemy 2.0
+# User loader for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-# Create the database tables
-with app.app_context():
-    db.create_all()
 def send_email_via_sendgrid(to_email, subject, html_content):
     """Send email using SendGrid"""
     try:
         message = Mail(
-            from_email='noreply@invoiceaccelerator.com',  # Change this to your domain
+            from_email='noreply@invoiceaccelerator.com',
             to_emails=to_email,
             subject=subject,
             html_content=html_content
@@ -93,7 +87,11 @@ def send_email_via_sendgrid(to_email, subject, html_content):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
-    
+
+# Create the database tables
+with app.app_context():
+    db.create_all()
+
 # Authentication routes
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -159,7 +157,7 @@ def generate_email():
         # Get data from the frontend form
         data = request.json
         client_name = data.get('client_name')
-        client_email = data.get('client_email')  # NEW
+        client_email = data.get('client_email')
         invoice_amount = data.get('invoice_amount')
         due_date = data.get('due_date')
         days_overdue = data.get('days_overdue', 7)
@@ -191,10 +189,10 @@ def generate_email():
         # Extract the generated email
         generated_email = response.choices[0].message.content
 
-        # Save to database with user_id - INCLUDING CLIENT EMAIL
+        # Save to database with user_id
         new_invoice = Invoice(
             client_name=client_name,
-            client_email=client_email,  # NEW
+            client_email=client_email,
             invoice_amount=float(invoice_amount),
             due_date=due_date,
             days_overdue=int(days_overdue),
@@ -260,12 +258,14 @@ def dashboard():
     total_invoices = Invoice.query.filter_by(user_id=current_user.id).count()
     pending_invoices = Invoice.query.filter_by(user_id=current_user.id, status='pending').count()
     paid_invoices = Invoice.query.filter_by(user_id=current_user.id, status='paid').count()
+    sent_invoices = Invoice.query.filter_by(user_id=current_user.id, status='sent').count()
     
     return jsonify({
         'company_name': current_user.company_name,
         'total_invoices': total_invoices,
         'pending_invoices': pending_invoices,
-        'paid_invoices': paid_invoices
+        'paid_invoices': paid_invoices,
+        'sent_invoices': sent_invoices
     })
 
 @app.route('/send_email/<int:invoice_id>', methods=['POST'])
@@ -278,28 +278,31 @@ def send_invoice_email(invoice_id):
         # Use the actual client email from the database
         client_email = invoice.client_email
         
+        # Fix for f-string backslash issue - do replacement outside f-string
+        email_body = invoice.generated_email.replace('\n', '<br>')
+        
         subject = f"Payment Reminder: Invoice for R {invoice.invoice_amount}"
-            html_content = f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; color: white; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="margin: 0;">{current_user.company_name}</h1>
-                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Payment Reminder</p>
-                </div>
-                <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
-                    <p>Dear {invoice.client_name},</p>
-                    {invoice.generated_email.replace(chr(10), '<br>')}
-                    <br><br>
-                    <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
-                        <strong>Invoice Details:</strong><br>
-                        Amount: R {invoice.invoice_amount}<br>
-                        Due Date: {invoice.due_date}<br>
-                        Days Overdue: {invoice.days_overdue}
-                    </div>
-                    <br>
-                    <p>Best regards,<br><strong>{current_user.company_name}</strong></p>
-                </div>
-            </div>
-            """
+        html_content = f"""
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; color: white; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="margin: 0;">{current_user.company_name}</h1>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Payment Reminder</p>
+    </div>
+    <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p>Dear {invoice.client_name},</p>
+        {email_body}
+        <br><br>
+        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
+            <strong>Invoice Details:</strong><br>
+            Amount: R {invoice.invoice_amount}<br>
+            Due Date: {invoice.due_date}<br>
+            Days Overdue: {invoice.days_overdue}
+        </div>
+        <br>
+        <p>Best regards,<br><strong>{current_user.company_name}</strong></p>
+    </div>
+</div>
+"""
         
         if send_email_via_sendgrid(client_email, subject, html_content):
             invoice.status = 'sent'
@@ -310,10 +313,15 @@ def send_invoice_email(invoice_id):
             
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-    
+
 @app.route('/pricing')
 def pricing():
     return render_template('pricing.html')
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for deployment verification"""
+    return jsonify({'status': 'healthy', 'message': 'Invoice Accelerator is running'})
 
 if __name__ == '__main__':
     app.run(debug=True)
