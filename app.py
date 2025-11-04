@@ -158,6 +158,7 @@ def generate_email():
         # Get data from the frontend form
         data = request.json
         client_name = data.get('client_name')
+        client_email = data.get('client_email')  # NEW
         invoice_amount = data.get('invoice_amount')
         due_date = data.get('due_date')
         days_overdue = data.get('days_overdue', 7)
@@ -189,14 +190,15 @@ def generate_email():
         # Extract the generated email
         generated_email = response.choices[0].message.content
 
-        # Save to database with user_id
+        # Save to database with user_id - INCLUDING CLIENT EMAIL
         new_invoice = Invoice(
             client_name=client_name,
+            client_email=client_email,  # NEW
             invoice_amount=float(invoice_amount),
             due_date=due_date,
             days_overdue=int(days_overdue),
             generated_email=generated_email,
-            user_id=current_user.id  # Link to current user
+            user_id=current_user.id
         )
         
         db.session.add(new_invoice)
@@ -268,6 +270,7 @@ def dashboard():
 @app.route('/send_email/<int:invoice_id>', methods=['POST'])
 @login_required
 def send_invoice_email(invoice_id):
+    """Send the generated email to the client"""
     try:
         invoice = Invoice.query.filter_by(id=invoice_id, user_id=current_user.id).first_or_404()
         

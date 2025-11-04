@@ -222,7 +222,33 @@
                                 </select>
                             </div>
                         </div>
-                        
+                        <div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="client_name" class="form-label fw-semibold">Client Name</label>
+        <input type="text" class="form-control" id="client_name" required 
+               placeholder="e.g., ABC Suppliers">
+    </div>
+    
+    <!-- ADD THIS NEW FIELD -->
+    <div class="col-md-6 mb-3">
+        <label for="client_email" class="form-label fw-semibold">Client Email</label>
+        <input type="email" class="form-control" id="client_email" required 
+               placeholder="client@company.com">
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="invoice_amount" class="form-label fw-semibold">Amount (R)</label>
+        <input type="number" class="form-control" id="invoice_amount" required 
+               placeholder="e.g., 5000">
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="due_date" class="form-label fw-semibold">Due Date</label>
+        <input type="date" class="form-control" id="due_date" required>
+    </div>
+</div>
                         <button type="submit" class="btn btn-primary w-100" id="generateBtn">
                             <i class="fas fa-robot me-2"></i>Generate Chase Email
                         </button>
@@ -301,11 +327,12 @@
             generateBtn.disabled = true;
 
             const formData = {
-                client_name: document.getElementById('client_name').value,
-                invoice_amount: document.getElementById('invoice_amount').value,
-                due_date: document.getElementById('due_date').value,
-                days_overdue: document.getElementById('days_overdue').value
-            };
+                    client_name: document.getElementById('client_name').value,
+                    client_email: document.getElementById('client_email').value,  // NEW
+                    invoice_amount: document.getElementById('invoice_amount').value,
+                    due_date: document.getElementById('due_date').value,
+                    days_overdue: document.getElementById('days_overdue').value
+                };
 
             try {
                 const response = await fetch('/generate_email', {
