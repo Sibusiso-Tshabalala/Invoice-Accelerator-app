@@ -17,10 +17,12 @@ if os.path.exists('.env'):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
 
-# Configure database - FIXED: Remove duplicate database configuration
+# Database configuration - Use PostgreSQL on Railway, SQLite locally
 if os.getenv('DATABASE_URL'):
+    # Use PostgreSQL on Railway
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace('postgres://', 'postgresql://')
 else:
+    # Use SQLite for local development
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///invoices.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -52,7 +54,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Invoice model - FIXED: Remove duplicate user_id field
+# Invoice model
 class Invoice(db.Model):
     __tablename__ = 'invoices'
     id = db.Column(db.Integer, primary_key=True)
