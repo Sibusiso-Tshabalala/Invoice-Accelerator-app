@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from openai import OpenAI
+from openai import OpenAI  # This works with openai>=1.0.0
 from dotenv import load_dotenv
 from datetime import datetime
 from sendgrid import SendGridAPIClient
@@ -33,7 +33,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Initialize OpenAI client
+# Initialize OpenAI client - UPDATED for new SDK
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # User model
@@ -178,7 +178,7 @@ def generate_email():
         Keep it concise and under 150 words.
         """
 
-        # Call OpenAI API
+        # Call OpenAI API - UPDATED for new SDK
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
