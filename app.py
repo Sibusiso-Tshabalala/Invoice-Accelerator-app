@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from openai import OpenAI  # This works with openai>=1.0.0
+from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime
 from sendgrid import SendGridAPIClient
@@ -17,13 +17,18 @@ if os.path.exists('.env'):
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
 
-# Database configuration - Use PostgreSQL on Railway, SQLite locally
+# DEBUG: Check what database URL we're using
+print("DATABASE_URL:", os.getenv('DATABASE_URL'))
+
+# Database configuration - FIXED: Use PostgreSQL on Railway
 if os.getenv('DATABASE_URL'):
     # Use PostgreSQL on Railway
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace('postgres://', 'postgresql://')
+    print("Using PostgreSQL database")
 else:
     # Use SQLite for local development
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///invoices.db'
+    print("Using SQLite database")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -33,7 +38,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Initialize OpenAI client - UPDATED for new SDK
+# Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # User model
@@ -92,7 +97,11 @@ def send_email_via_sendgrid(to_email, subject, html_content):
 
 # Create the database tables
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
 
 # Authentication routes
 @app.route('/register', methods=['GET', 'POST'])
@@ -178,7 +187,7 @@ def generate_email():
         Keep it concise and under 150 words.
         """
 
-        # Call OpenAI API - UPDATED for new SDK
+        # Call OpenAI API
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
