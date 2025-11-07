@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from flask_cors import CORS
 
 # Load environment variables from .env file
-if os.path.exists('.env'):
-    load_dotenv()
+load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -34,8 +34,20 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Initialize OpenAI client (only if API key is available)
+client = None
+if os.getenv('OPENAI_API_KEY'):
+    try:
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        print("✅ OpenAI client initialized successfully")
+    except Exception as e:
+        print(f"❌ OpenAI initialization failed: {e}")
+        client = None
+else:
+    print("⚠️ OpenAI API key not found - AI features disabled")
+
+# CORS configuration
+CORS(app, origins=["http://localhost:3000"])
 
 # User model
 class User(UserMixin, db.Model):
@@ -90,6 +102,22 @@ def send_email_via_sendgrid(to_email, subject, html_content):
         print(f"Error sending email: {e}")
         return False
 
+# Register PayPal blueprint if available
+try:
+    from routes.paypal_payments import paypal_payments
+    app.register_blueprint(paypal_payments, url_prefix='/api/paypal')
+    print("✅ PayPal payments blueprint registered")
+except ImportError as e:
+    print(f"⚠️ PayPal routes not available: {e}")
+
+# Register invoices blueprint if available
+try:
+    from routes.invoices import invoices
+    app.register_blueprint(invoices, url_prefix='/api/invoices')
+    print("✅ Invoices blueprint registered")
+except ImportError as e:
+    print(f"⚠️ Invoice routes not available: {e}")
+
 # Create the database tables
 with app.app_context():
     try:
@@ -101,15 +129,21 @@ with app.app_context():
 # Routes
 @app.route('/')
 def home():
-    return render_template('landing.html')
+    return jsonify({"message": "InvoiceAccelerator API is running! 🚀", "status": "success"})
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'})
+            
         email = data.get('email')
         password = data.get('password')
         company_name = data.get('company_name')
+        
+        if not all([email, password, company_name]):
+            return jsonify({'success': False, 'error': 'All fields are required'})
         
         if User.query.filter_by(email=email).first():
             return jsonify({'success': False, 'error': 'Email already registered'})
@@ -123,14 +157,20 @@ def register():
         login_user(new_user)
         return jsonify({'success': True, 'message': 'Registration successful'})
     
-    return render_template('register.html')
+    return jsonify({'message': 'Register endpoint - use POST to register'})
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'})
+            
         email = data.get('email')
         password = data.get('password')
+        
+        if not all([email, password]):
+            return jsonify({'success': False, 'error': 'Email and password are required'})
         
         user = User.query.filter_by(email=email).first()
         
@@ -140,24 +180,51 @@ def login():
         else:
             return jsonify({'success': False, 'error': 'Invalid email or password'})
     
-    return render_template('login.html')
+    return jsonify({'message': 'Login endpoint - use POST to login'})
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
     recent_invoices = Invoice.query.filter_by(user_id=current_user.id).order_by(Invoice.created_at.desc()).limit(5).all()
-    return render_template('index.html', recent_invoices=recent_invoices, company_name=current_user.company_name)
+    invoices_data = [
+        {
+            'id': invoice.id,
+            'client_name': invoice.client_name,
+            'client_email': invoice.client_email,
+            'invoice_amount': invoice.invoice_amount,
+            'due_date': invoice.due_date,
+            'status': invoice.status
+        }
+        for invoice in recent_invoices
+    ]
+    return jsonify({
+        'company_name': current_user.company_name,
+        'recent_invoices': invoices_data
+    })
 
 @app.route('/generate_email', methods=['POST'])
 @login_required
 def generate_email():
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'})
+            
         client_name = data.get('client_name')
         client_email = data.get('client_email')
         invoice_amount = data.get('invoice_amount')
         due_date = data.get('due_date')
         days_overdue = data.get('days_overdue', 7)
+
+        if not all([client_name, client_email, invoice_amount, due_date]):
+            return jsonify({'success': False, 'error': 'All fields are required'})
+
+        # Check if OpenAI client is available
+        if not client:
+            return jsonify({
+                'success': False, 
+                'error': 'AI features are currently unavailable. Please try again later.'
+            })
 
         prompt = f"""
         Write a professional but firm email to a client named {client_name} regarding their overdue invoice for R {invoice_amount}. 
@@ -202,12 +269,103 @@ def generate_email():
             'error': str(e)
         })
 
-# Add other routes (invoices, update_status, send_email, etc.) from your previous version
+@app.route('/invoices')
+@login_required
+def get_invoices():
+    try:
+        invoices = Invoice.query.filter_by(user_id=current_user.id).order_by(Invoice.created_at.desc()).all()
+        invoices_data = [
+            {
+                'id': invoice.id,
+                'client_name': invoice.client_name,
+                'client_email': invoice.client_email,
+                'invoice_amount': invoice.invoice_amount,
+                'due_date': invoice.due_date,
+                'days_overdue': invoice.days_overdue,
+                'status': invoice.status,
+                'created_at': invoice.created_at.isoformat()
+            }
+            for invoice in invoices
+        ]
+        return jsonify({'success': True, 'invoices': invoices_data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/update_status', methods=['POST'])
+@login_required
+def update_status():
+    try:
+        data = request.get_json()
+        invoice_id = data.get('invoice_id')
+        status = data.get('status')
+        
+        invoice = Invoice.query.filter_by(id=invoice_id, user_id=current_user.id).first()
+        if invoice:
+            invoice.status = status
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Status updated successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Invoice not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/send_email', methods=['POST'])
+@login_required
+def send_email():
+    try:
+        data = request.get_json()
+        invoice_id = data.get('invoice_id')
+        
+        invoice = Invoice.query.filter_by(id=invoice_id, user_id=current_user.id).first()
+        if not invoice:
+            return jsonify({'success': False, 'error': 'Invoice not found'})
+        
+        # Send email using SendGrid
+        subject = f"Payment Reminder: Overdue Invoice - {invoice.client_name}"
+        html_content = f"""
+        <html>
+            <body>
+                <h2>Payment Reminder</h2>
+                <p>Dear {invoice.client_name},</p>
+                <p>{invoice.generated_email}</p>
+                <p>Best regards,<br>{current_user.company_name}</p>
+            </body>
+        </html>
+        """
+        
+        if send_email_via_sendgrid(invoice.client_email, subject, html_content):
+            invoice.status = 'sent'
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Email sent successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to send email'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
 
 @app.route('/health')
 def health_check():
-    return jsonify({'status': 'healthy', 'message': 'Invoice Accelerator is running with PostgreSQL!'})
+    return jsonify({
+        'status': 'healthy', 
+        'message': 'Invoice Accelerator is running!',
+        'database': 'PostgreSQL' if os.getenv('DATABASE_URL') else 'SQLite',
+        'openai_available': client is not None
+    })
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    print("🚀 Server starting on http://localhost:5000")
+    print("💳 Available routes:")
+    print("   GET  /              - API status")
+    print("   GET  /health        - Health check")
+    print("   POST /register      - User registration")
+    print("   POST /login         - User login")
+    print("   POST /generate_email - Generate AI email")
+    print("   GET  /invoices      - Get user invoices")
+    print("   POST /send_email    - Send email to client")
+    app.run(host='0.0.0.0', port=5000, debug=False)

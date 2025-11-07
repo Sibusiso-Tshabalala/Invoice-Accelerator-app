@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Button = ({ children, variant = 'primary', className = '', ...props }) => {
+const Button = ({ children, variant = 'primary', className = '', onClick, disabled = false, ...props }) => {
   const baseStyles = 'px-6 py-3 rounded-lg font-semibold transform transition-all duration-200 focus:outline-none focus:ring-2';
   
   const variants = {
@@ -12,9 +12,11 @@ const Button = ({ children, variant = 'primary', className = '', ...props }) => 
 
   return (
     <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`${baseStyles} ${variants[variant]} ${className}`}
+      whileHover={{ scale: disabled ? 1 : 1.05 }}
+      whileTap={{ scale: disabled ? 1 : 0.95 }}
+      className={`${baseStyles} ${variants[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      onClick={onClick}
+      disabled={disabled}
       {...props}
     >
       {children}
