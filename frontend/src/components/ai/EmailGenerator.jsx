@@ -31,7 +31,7 @@ const EmailGenerator = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/ai/generate-email', {
+      const response = await axios.post('/api/ai/generate-email', {
         client_name: formData.clientName,
         invoice_amount: formData.invoiceAmount,
         due_date: formData.dueDate,

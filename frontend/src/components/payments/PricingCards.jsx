@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import Button from '../ui/Button';
 
 // Create a custom hook for PayPal with better error handling
-// Create a custom hook for PayPal with better error handling
 const usePayPal = () => {
   const [loading, setLoading] = useState(false);
 
@@ -184,15 +183,9 @@ const PricingCards = () => {
                 }`}
                 onClick={() => handleButtonClick(plan.id)}
                 disabled={loading}
+                loading={loading}
               >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  'Start Free Trial'
-                )}
+                {loading ? 'Processing...' : 'Start Free Trial'}
               </Button>
               
               <p className="text-center text-gray-500 dark:text-gray-400 text-sm mt-4">
