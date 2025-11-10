@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from flask_cors import CORS
+from flask_cors import CORS , cross_origin
 
 # Load environment variables from .env file
 load_dotenv()
@@ -357,6 +357,34 @@ def health_check():
         'database': 'PostgreSQL' if os.getenv('DATABASE_URL') else 'SQLite',
         'openai_available': client is not None
     })
+
+@app.route('/api/paypal/test')
+def paypal_test():
+    print("🎯 PAYPAL TEST ENDPOINT HIT")
+    return jsonify({'message': 'PayPal endpoint is working! 💳', 'status': 'success'})
+
+@app.route('/api/paypal/create-payment', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def create_payment():
+    print("🎯 PAYPAL CREATE-PAYMENT ENDPOINT HIT")
+    try:
+        data = request.get_json()
+        print("📦 Received data:", data)
+        
+        plan_id = data.get('planId')
+        print("📋 Plan ID requested:", plan_id)
+        
+        # For now, just return a success message without actual PayPal
+        return jsonify({
+            'success': True,
+            'message': 'Payment endpoint working!',
+            'planId': plan_id,
+            'test_mode': True
+        })
+        
+    except Exception as e:
+        print("💥 Error in create-payment:", str(e))
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")

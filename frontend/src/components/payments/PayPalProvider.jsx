@@ -15,35 +15,51 @@ export const PayPalProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubscription = async (planId) => {
+    console.log('🎯 PAYPAL PROVIDER - handleSubscription called with plan:', planId);
     setLoading(true);
-    console.log('🔄 Starting payment process for plan:', planId);
     
     try {
-      // First test the connection
-      console.log('🔗 Testing connection to backend...');
-      const testResponse = await axios.get('http://localhost:5000/health');
-      console.log('✅ Backend connection successful:', testResponse.data);
+      // Test 1: Basic connection to backend
+      console.log('🔗 Step 1: Testing backend connection...');
+      const healthResponse = await axios.get('http://localhost:5000/health');
+      console.log('✅ Backend connection successful:', healthResponse.data);
 
-      // Then try to create payment
-      console.log('💳 Creating payment session...');
-      const response = await axios.post('http://localhost:5000/api/paypal/create-payment', {
-        planId: planId
-      });
+      // Test 2: Check PayPal endpoint
+      console.log('🔗 Step 2: Testing PayPal endpoint...');
+      const plansResponse = await axios.get('http://localhost:5000/api/paypal/plans');
+      console.log('✅ PayPal plans endpoint successful:', plansResponse.data);
 
-      console.log('✅ Payment session created:', response.data);
+      // Test 3: Create payment
+      console.log('💳 Step 3: Creating payment session for plan:', planId);
+      const paymentResponse = await axios.post(
+        'http://localhost:5000/api/paypal/create-payment', 
+        { planId: planId }
+      );
+      
+      console.log('✅ Payment session created:', paymentResponse.data);
 
-      if (response.data.success) {
-        // Redirect to PayPal approval page
+      if (paymentResponse.data.success) {
         console.log('🔗 Redirecting to PayPal...');
-        window.location.href = response.data.approvalUrl;
+        window.location.href = paymentResponse.data.approvalUrl;
       } else {
-        throw new Error(response.data.error || 'Payment failed');
+        throw new Error(paymentResponse.data.error || 'Payment creation failed');
       }
       
     } catch (error) {
-      console.error('❌ Payment error:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      alert(`Payment failed: ${error.response?.data?.error || error.message}`);
+      console.error('❌ PAYMENT PROCESS FAILED:');
+      console.error('Error message:', error.message);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        alert('❌ Cannot connect to the server. Make sure backend is running on http://localhost:5000');
+      } else if (error.response?.status === 404) {
+        alert('❌ Backend endpoint not found (404). Check if PayPal routes are registered.');
+      } else if (error.response?.status === 500) {
+        alert('❌ Server error. Check backend console.');
+      } else {
+        alert(`❌ Payment failed: ${error.response?.data?.error || error.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -54,6 +70,8 @@ export const PayPalProvider = ({ children }) => {
     loading
   };
 
+  console.log('🔄 PayPalProvider initialized');
+  
   return (
     <PayPalContext.Provider value={value}>
       {children}
