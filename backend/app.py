@@ -35,17 +35,25 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 # Initialize OpenAI client (only if API key is available)
+# Initialize OpenAI client
 client = None
-if os.getenv('OPENAI_API_KEY'):
-    try:
-        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+try:
+    # Try environment variable first
+    api_key = os.getenv('OPENAI_API_KEY')
+    
+    # If not in environment, add your key directly here temporarily:
+    if not api_key:
+        api_key = "sk-your_actual_openai_key_here"  # ← Replace with your actual key
+    
+    if api_key and api_key != "sk-your_actual_openai_key_here":
+        client = OpenAI(api_key=api_key)
         print("✅ OpenAI client initialized successfully")
-    except Exception as e:
-        print(f"❌ OpenAI initialization failed: {e}")
+    else:
+        print("⚠️ Please add your OpenAI API key to continue")
         client = None
-else:
-    print("⚠️ OpenAI API key not found - AI features disabled")
-
+except Exception as e:
+    print(f"❌ OpenAI initialization failed: {e}")
+    client = None
 # CORS configuration
 CORS(app, origins=["http://localhost:3000"])
 
