@@ -363,29 +363,61 @@ def paypal_test():
     print("🎯 PAYPAL TEST ENDPOINT HIT")
     return jsonify({'message': 'PayPal endpoint is working! 💳', 'status': 'success'})
 
-@app.route('/api/paypal/create-payment', methods=['POST', 'OPTIONS'])
-@cross_origin()
+@app.route('/api/paypal/create-payment', methods=['POST'])
 def create_payment():
     print("🎯 PAYPAL CREATE-PAYMENT ENDPOINT HIT")
     try:
         data = request.get_json()
         print("📦 Received data:", data)
         
+        if not data:
+            print("❌ No JSON data received")
+            return jsonify({'error': 'No JSON data provided'}), 400
+            
         plan_id = data.get('planId')
         print("📋 Plan ID requested:", plan_id)
         
+        if not plan_id:
+            print("❌ No planId provided")
+            return jsonify({'error': 'Plan ID is required'}), 400
+        
         # For now, just return a success message without actual PayPal
+        print("✅ Returning test success response")
         return jsonify({
             'success': True,
             'message': 'Payment endpoint working!',
             'planId': plan_id,
-            'test_mode': True
+            'test_mode': True,
+            'approvalUrl': 'https://paypal.com/test-success'  # Temporary test URL
         })
         
     except Exception as e:
-        print("💥 Error in create-payment:", str(e))
+        print("💥 ERROR in create-payment:")
+        print("Error type:", type(e).__name__)
+        print("Error message:", str(e))
+        import traceback
+        print("Traceback:")
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-
+    
+@app.route('/api/simple-payment', methods=['POST'])
+def simple_payment():
+    print("🎯 SIMPLE PAYMENT ENDPOINT HIT")
+    try:
+        data = request.get_json()
+        print("📦 Simple endpoint received:", data)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Simple payment test successful!',
+            'received_data': data,
+            'backend': 'working'
+        })
+        
+    except Exception as e:
+        print("💥 Simple payment error:", e)
+        return jsonify({'error': str(e)}), 500
+    
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")
     print("💳 Available routes:")

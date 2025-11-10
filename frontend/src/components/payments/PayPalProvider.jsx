@@ -19,46 +19,34 @@ export const PayPalProvider = ({ children }) => {
     setLoading(true);
     
     try {
-      // Test 1: Basic connection to backend
-      console.log('🔗 Step 1: Testing backend connection...');
-      const healthResponse = await axios.get('http://localhost:5000/health');
-      console.log('✅ Backend connection successful:', healthResponse.data);
+      // Test 1: Simple endpoint (no CORS issues)
+      console.log('🔗 Testing simple endpoint...');
+      const simpleResponse = await axios.post('http://localhost:5000/api/simple-payment', {
+        planId: planId,
+        test: 'frontend data'
+      });
+      console.log('✅ Simple endpoint successful:', simpleResponse.data);
 
-      // Test 2: Check PayPal endpoint
-      console.log('🔗 Step 2: Testing PayPal endpoint...');
-      const plansResponse = await axios.get('http://localhost:5000/api/paypal/plans');
-      console.log('✅ PayPal plans endpoint successful:', plansResponse.data);
+      // Test 2: PayPal endpoint
+      console.log('🔗 Testing PayPal endpoint...');
+      const paypalResponse = await axios.post('http://localhost:5000/api/paypal/create-payment', {
+        planId: planId
+      });
+      console.log('✅ PayPal endpoint successful:', paypalResponse.data);
 
-      // Test 3: Create payment
-      console.log('💳 Step 3: Creating payment session for plan:', planId);
-      const paymentResponse = await axios.post(
-        'http://localhost:5000/api/paypal/create-payment', 
-        { planId: planId }
-      );
-      
-      console.log('✅ Payment session created:', paymentResponse.data);
-
-      if (paymentResponse.data.success) {
-        console.log('🔗 Redirecting to PayPal...');
-        window.location.href = paymentResponse.data.approvalUrl;
-      } else {
-        throw new Error(paymentResponse.data.error || 'Payment creation failed');
-      }
+      // If both work, show success
+      alert(`✅ Both endpoints working! Plan: ${planId}`);
       
     } catch (error) {
-      console.error('❌ PAYMENT PROCESS FAILED:');
+      console.error('❌ REQUEST FAILED:');
       console.error('Error message:', error.message);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
       
-      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        alert('❌ Cannot connect to the server. Make sure backend is running on http://localhost:5000');
-      } else if (error.response?.status === 404) {
-        alert('❌ Backend endpoint not found (404). Check if PayPal routes are registered.');
-      } else if (error.response?.status === 500) {
-        alert('❌ Server error. Check backend console.');
+      if (error.response?.status === 500) {
+        alert('❌ Server 500 Error - Check backend console for details');
       } else {
-        alert(`❌ Payment failed: ${error.response?.data?.error || error.message}`);
+        alert(`Request failed: ${error.response?.data?.error || error.message}`);
       }
     } finally {
       setLoading(false);
