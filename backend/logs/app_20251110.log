@@ -1,0 +1,11 @@
+2025-11-10 12:57:10,112 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.8.27:5000
+2025-11-10 12:57:10,112 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-11-10 12:57:45,996 - werkzeug - INFO - 127.0.0.1 - - [10/Nov/2025 12:57:45] "[35m[1mOPTIONS /api/ai/analyze-invoice HTTP/1.1[0m" 503 -
+2025-11-10 13:02:09,734 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.8.27:5000
+2025-11-10 13:02:09,734 - werkzeug - INFO - [33mPress CTRL+C to quit[0m

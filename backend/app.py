@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -15,14 +16,17 @@ from flask_limiter.util import get_remote_address
 # Load environment variables from .env file
 load_dotenv()
 
-limiter = Limiter(
-    app=app,
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"]
-)
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
+
+# Initialize rate limiter
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # Database configuration - Railway now provides DATABASE_URL
 if os.getenv('DATABASE_URL'):
@@ -38,6 +42,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': 300,
     'pool_pre_ping': True
 }
+
 # Initialize database and login manager
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -45,9 +50,6 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 # Initialize OpenAI client (only if API key is available)
-# Initialize OpenAI client
-# Updated OpenAI client configuration
-# Initialize AI client - Using OpenRouter
 client = None
 try:
     api_key = os.getenv('OPENROUTER_API_KEY')
@@ -67,11 +69,46 @@ try:
 except Exception as e:
     print(f"❌ OpenRouter initialization failed: {e}")
     client = None
+
 # CORS configuration
 CORS(app, 
      origins=["http://localhost:3000"],
      supports_credentials=True,
      methods=["GET", "POST", "PUT", "DELETE"])
+
+# Import validators and logger
+try:
+    from validators import validate_user_registration, validate_invoice_data, validate_payment_data
+    print("✅ Validators imported successfully")
+except ImportError as e:
+    print(f"⚠️ Validators not available: {e}")
+    # Fallback validation functions
+    def validate_user_registration(data):
+        return []
+    def validate_invoice_data(data):
+        return []
+    def validate_payment_data(data):
+        return []
+
+try:
+    from logger import logger, log_database_operation, log_ai_operation, log_payment_operation, log_error
+    print("✅ Logger imported successfully")
+except ImportError as e:
+    print(f"⚠️ Logger not available: {e}")
+    # Fallback logging functions
+    def logger(*args, **kwargs): pass
+    def log_database_operation(*args, **kwargs): pass
+    def log_ai_operation(*args, **kwargs): pass
+    def log_payment_operation(*args, **kwargs): pass
+    def log_error(*args, **kwargs): pass
+
+# Import PayPal service
+try:
+    from services.paypal_service import paypal_service
+    print("✅ PayPal service imported successfully")
+except ImportError as e:
+    print(f"⚠️ PayPal service not available: {e}")
+    paypal_service = None
 
 # User model
 class User(UserMixin, db.Model):
@@ -126,14 +163,35 @@ def send_email_via_sendgrid(to_email, subject, html_content):
         print(f"Error sending email: {e}")
         return False
 
+# Database connection health check
+@app.before_request
+def check_database_connection():
+    try:
+        # Test database connection with explicit text()
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
+    except Exception as e:
+        print(f"❌ Database connection error: {e}")
+        return jsonify({
+            'success': False, 
+            'error': 'Database connection unavailable'
+        }), 503
+
 # Register PayPal blueprint if available
-#3try:
-   # from routes.paypal_payments import paypal_payments
-  #  app.register_blueprint(paypal_payments, url_prefix='/api/paypal')
-   # print("✅ PayPal payments blueprint registered")
-#except ImportError as e:
-  #  print(f"⚠️ PayPal routes not available: {e}")
-print("ℹ️ PayPal blueprint disabled - using simple endpoints in app.py")
+try:
+    from routes.paypal_payments import paypal_payments
+    app.register_blueprint(paypal_payments, url_prefix='/api/paypal')
+    print("✅ PayPal payments blueprint registered")
+    
+    # Check PayPal configuration
+    if paypal_service and paypal_service.is_configured:
+        print("✅ PayPal is configured and ready")
+    else:
+        print("⚠️ PayPal is in simulation mode - add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET to .env for real payments")
+        
+except ImportError as e:
+    print(f"⚠️ PayPal routes not available: {e}")
+
 # Register invoices blueprint if available
 try:
     from routes.invoices import invoices
@@ -150,17 +208,39 @@ with app.app_context():
     except Exception as e:
         print(f"❌ Database error: {e}")
 
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'success': False, 'error': 'Resource not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        'success': False, 
+        'error': 'Rate limit exceeded. Please try again later.'
+    }), 429
+
 # Routes
 @app.route('/')
 def home():
     return jsonify({"message": "InvoiceAccelerator API is running! 🚀", "status": "success"})
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['POST'])
+@limiter.limit("10 per hour")
 def register():
-    if request.method == 'POST':
+    try:
         data = request.get_json()
         if not data:
             return jsonify({'success': False, 'error': 'No JSON data provided'})
+            
+        # Input validation
+        errors = validate_user_registration(data)
+        if errors:
+            return jsonify({'success': False, 'error': '; '.join(errors)}), 400
             
         email = data.get('email')
         password = data.get('password')
@@ -179,13 +259,17 @@ def register():
         db.session.commit()
         
         login_user(new_user)
+        log_database_operation('user_registration', new_user.id, f"Company: {company_name}")
         return jsonify({'success': True, 'message': 'Registration successful'})
-    
-    return jsonify({'message': 'Register endpoint - use POST to register'})
+        
+    except Exception as e:
+        log_error('registration', e)
+        return jsonify({'success': False, 'error': 'Registration failed'}), 500
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
+@limiter.limit("10 per hour")
 def login():
-    if request.method == 'POST':
+    try:
         data = request.get_json()
         if not data:
             return jsonify({'success': False, 'error': 'No JSON data provided'})
@@ -200,11 +284,14 @@ def login():
         
         if user and user.check_password(password):
             login_user(user)
+            log_database_operation('user_login', user.id)
             return jsonify({'success': True, 'message': 'Login successful'})
         else:
             return jsonify({'success': False, 'error': 'Invalid email or password'})
-    
-    return jsonify({'message': 'Login endpoint - use POST to login'})
+            
+    except Exception as e:
+        log_error('login', e)
+        return jsonify({'success': False, 'error': 'Login failed'}), 500
 
 @app.route('/dashboard')
 @login_required
@@ -228,11 +315,17 @@ def dashboard():
 
 @app.route('/generate_email', methods=['POST'])
 @login_required
+@limiter.limit("30 per hour")
 def generate_email():
     try:
         data = request.get_json()
         if not data:
             return jsonify({'success': False, 'error': 'No JSON data provided'})
+            
+        # Input validation
+        errors = validate_invoice_data(data)
+        if errors:
+            return jsonify({'success': False, 'error': '; '.join(errors)}), 400
             
         client_name = data.get('client_name')
         client_email = data.get('client_email')
@@ -281,6 +374,7 @@ def generate_email():
         db.session.add(new_invoice)
         db.session.commit()
 
+        log_ai_operation('email_generated', current_user.id, f"Client: {client_name}")
         return jsonify({
             'success': True,
             'email': generated_email,
@@ -288,6 +382,7 @@ def generate_email():
         })
 
     except Exception as e:
+        log_error('generate_email', e, current_user.id if current_user.is_authenticated else None)
         return jsonify({
             'success': False,
             'error': str(e)
@@ -374,14 +469,17 @@ def logout():
     return jsonify({'success': True, 'message': 'Logged out successfully'})
 
 @app.route('/health')
+@limiter.exempt
 def health_check():
     return jsonify({
         'status': 'healthy', 
         'message': 'Invoice Accelerator is running!',
         'database': 'PostgreSQL' if os.getenv('DATABASE_URL') else 'SQLite',
-        'openai_available': client is not None
+        'openai_available': client is not None,
+        'paypal_configured': paypal_service.is_configured if paypal_service else False
     })
 
+# Keep your existing PayPal test routes (they'll work as fallbacks)
 @app.route('/api/paypal/test')
 def paypal_test():
     print("🎯 PAYPAL TEST ENDPOINT HIT")
@@ -459,6 +557,7 @@ def payment_success():
 # AI-Powered Features
 @app.route('/api/ai/generate-email', methods=['POST'])
 @cross_origin()
+@limiter.limit("20 per hour")
 def generate_ai_email():
     """Generate professional payment reminder email using AI"""
     try:
@@ -507,10 +606,11 @@ def generate_ai_email():
             ],
             max_tokens=250,
             temperature=0.7
-)
+        )
 
         generated_email = response.choices[0].message.content
 
+        log_ai_operation('ai_email_generated', None, f"Client: {client_name}, Tone: {tone}")
         return jsonify({
             'success': True,
             'email': generated_email,
@@ -520,22 +620,12 @@ def generate_ai_email():
 
     except Exception as e:
         print(f"AI Email Error: {e}")
+        log_error('ai_generate_email', e)
         return jsonify({'success': False, 'error': str(e)}), 500
-        # After generating the email, you can add some post-processing:
-    if email_content and source == "ai":
-        # Add a professional signature
-        if "sincerely" in email_content.lower() or "best regards" in email_content.lower():
-            # Signature already included by AI
-            pass
-        else:
-            # Add professional signature
-            email_content += "\n\nBest regards,\nYour Accounts Team\nInvoiceAccelerator"
-        
-        # Ensure proper formatting
-        email_content = email_content.strip()
 
 @app.route('/api/ai/analyze-invoice', methods=['POST'])
 @cross_origin()
+@limiter.limit("15 per hour")
 def analyze_invoice():
     """AI analysis using OpenRouter"""
     try:
@@ -579,6 +669,7 @@ def analyze_invoice():
 
         analysis = response.choices[0].message.content
 
+        log_ai_operation('invoice_analysis', None, f"Invoices analyzed: {len(invoice_data)}")
         return jsonify({
             'success': True,
             'analysis': analysis,
@@ -587,10 +678,12 @@ def analyze_invoice():
 
     except Exception as e:
         print(f"AI Analysis Error: {e}")
+        log_error('ai_analyze_invoice', e)
         return jsonify({'success': False, 'error': str(e)}), 500
     
 @app.route('/api/ai/chat', methods=['POST'])
 @cross_origin()
+@limiter.limit("20 per hour")
 def ai_chat():
     """AI Chat assistant using OpenRouter"""
     try:
@@ -641,6 +734,7 @@ def ai_chat():
 
         ai_response = response.choices[0].message.content
 
+        log_ai_operation('ai_chat', None, f"Message length: {len(user_message)}")
         return jsonify({
             'success': True,
             'response': ai_response
@@ -648,7 +742,9 @@ def ai_chat():
 
     except Exception as e:
         print(f"AI Chat Error: {e}")
+        log_error('ai_chat', e)
         return jsonify({'success': False, 'error': str(e)}), 500
+
 def get_ai_client():
     try:
         if not client:
@@ -658,6 +754,7 @@ def get_ai_client():
         return client
     except Exception:
         return None
+
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")
     print("💳 Available routes:")
