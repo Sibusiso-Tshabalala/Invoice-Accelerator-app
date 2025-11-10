@@ -26,12 +26,12 @@ const AnimatedCounter = ({ value, duration = 2 }) => {
 };
 
 const AnimatedStats = () => {
-  const stats = [
-    { label: 'Invoices Created', value: 1247, suffix: '+', color: 'from-blue-500 to-cyan-500' },
-    { label: 'Revenue Generated', value: 89, suffix: 'K+', color: 'from-green-500 to-emerald-500' },
-    { label: 'Happy Clients', value: 342, suffix: '+', color: 'from-purple-500 to-pink-500' },
-    { label: 'Time Saved', value: 1240, suffix: 'hrs', color: 'from-orange-500 to-red-500' }
-  ];
+ const stats = [
+  { label: 'Invoices Created', value: 1247, suffix: '+', color: 'from-blue-500 to-cyan-500' },
+  { label: 'Revenue Generated', value: 4.2, suffix: 'M+ ZAR', color: 'from-green-500 to-emerald-500' },
+  { label: 'Happy Clients', value: 342, suffix: '+', color: 'from-purple-500 to-pink-500' },
+  { label: 'Time Saved', value: 1240, suffix: 'hrs', color: 'from-orange-500 to-red-500' }
+];
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">

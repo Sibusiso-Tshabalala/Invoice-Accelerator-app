@@ -7,11 +7,11 @@ const ROICalculator = () => {
 
   const savings = {
     time: invoices * time * 0.7, // 70% time savings
-    money: invoices * 15, // $15 per invoice saved
-    lateFees: invoices * 0.3 * 50 // 30% fewer late payments
+    money: invoices * 75, // R75 per invoice saved (ZAR)
+    lateFees: invoices * 0.3 * 250 // 30% fewer late payments, R250 average
   };
 
-  const totalSavings = savings.time * 25 + savings.money + savings.lateFees; // $25/hour rate
+  const totalSavings = savings.time * 150 + savings.money + savings.lateFees; // R150/hour rate
 
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-800/50">
@@ -82,8 +82,8 @@ const ROICalculator = () => {
           >
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl">
               <div className="text-5xl font-bold text-gradient mb-4">
-                ${totalSavings.toLocaleString()}
-              </div>
+              R{totalSavings.toLocaleString()}
+             </div>
               <div className="text-xl text-gray-600 dark:text-gray-300 mb-8">
                 Estimated Annual Savings
               </div>
@@ -95,16 +95,16 @@ const ROICalculator = () => {
                     {savings.time.toFixed(0)} hrs/month
                   </span>
                 </div>
-                <div className="flex justify-between">
+                 <div className="flex justify-between">
                   <span>Operational Savings:</span>
                   <span className="font-semibold text-green-600">
-                    ${savings.money.toLocaleString()}/month
+                    R{savings.money.toLocaleString()}/month
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Late Fee Reduction:</span>
                   <span className="font-semibold text-green-600">
-                    ${savings.lateFees.toLocaleString()}/month
+                    R{savings.lateFees.toLocaleString()}/month
                   </span>
                 </div>
               </div>

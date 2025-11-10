@@ -21,57 +21,60 @@ try {
 const PricingCards = () => {
   const { handleSubscription, loading } = usePayPal();
 
-  const plans = [
-    {
-      id: 'basic',
-      name: 'Basic',
-      price: 29,
-      period: 'month',
-      description: 'Perfect for small businesses',
-      features: [
-        '100 invoices per month',
-        'Basic analytics dashboard',
-        'Email support',
-        'Standard templates',
-        'PDF export'
-      ],
-      popular: false
-    },
-    {
-      id: 'pro',
-      name: 'Professional',
-      price: 79,
-      period: 'month',
-      description: 'For growing businesses',
-      features: [
-        'Unlimited invoices',
-        'Advanced analytics',
-        'Priority support',
-        'Custom branding',
-        'API access',
-        'Multi-user access',
-        'Advanced reporting'
-      ],
-      popular: true
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 199,
-      period: 'month',
-      description: 'For large organizations',
-      features: [
-        'Everything in Professional',
-        'Dedicated account manager',
-        'SLA guarantee',
-        'Custom integrations',
-        'Onboarding assistance',
-        'White-label options',
-        'Advanced security'
-      ],
-      popular: false
-    }
-  ];
+const plans = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    price: 299,
+    currency: 'R',
+    period: 'month',
+    description: 'Perfect for small businesses',
+    features: [
+      '100 invoices per month',
+      'Basic analytics dashboard',
+      'Email support',
+      'Standard templates',
+      'PDF export'
+    ],
+    popular: false
+  },
+  {
+    id: 'pro',
+    name: 'Professional',
+    price: 799,
+    currency: 'R',
+    period: 'month',
+    description: 'For growing businesses',
+    features: [
+      'Unlimited invoices',
+      'Advanced analytics',
+      'Priority support',
+      'Custom branding',
+      'API access',
+      'Multi-user access',
+      'Advanced reporting'
+    ],
+    popular: true
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 1999,
+    currency: 'R',
+    period: 'month',
+    description: 'For large organizations',
+    features: [
+      'Everything in Professional',
+      'Dedicated account manager',
+      'SLA guarantee',
+      'Custom integrations',
+      'Onboarding assistance',
+      'White-label options',
+      'Advanced security'
+    ],
+    popular: false
+  }
+];
 
   const handleButtonClick = (planId) => {
     console.log('🎯 PRICING BUTTON CLICKED - Plan:', planId);
@@ -127,7 +130,7 @@ const PricingCards = () => {
                 
                 <div className="flex items-baseline justify-center mb-4">
                   <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                    ${plan.price}
+                    {plan.currency}{plan.price}
                   </span>
                   <span className="text-gray-600 dark:text-gray-300 ml-2">
                     /{plan.period}

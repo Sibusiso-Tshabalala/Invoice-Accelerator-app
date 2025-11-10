@@ -6,19 +6,19 @@ paypal_payments = Blueprint('paypal_payments', __name__)
 PLANS = {
     'basic': {
         'name': 'Basic Plan',
-        'price': '29.00',
+        'price': '299',  # ZAR per month
         'description': 'Perfect for small businesses - 100 invoices/month',
-        'features': ['100 invoices/month', 'Basic analytics', 'Email support']
+        'features': ['100 invoices/month', 'Basic analytics', 'Email support', 'Standard templates']
     },
     'pro': {
         'name': 'Professional Plan', 
-        'price': '79.00',
+        'price': '799',  # ZAR per month
         'description': 'For growing businesses - Unlimited invoices',
         'features': ['Unlimited invoices', 'Advanced analytics', 'Priority support', 'Custom branding']
     },
     'enterprise': {
         'name': 'Enterprise Plan',
-        'price': '199.00', 
+        'price': '1999',  # ZAR per month
         'description': 'For large organizations - Full features',
         'features': ['Everything in Pro', 'API access', 'Dedicated account manager', 'SLA guarantee']
     }

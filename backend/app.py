@@ -36,23 +36,26 @@ login_manager.login_view = 'login'
 
 # Initialize OpenAI client (only if API key is available)
 # Initialize OpenAI client
+# Updated OpenAI client configuration
+# Initialize AI client - Using OpenRouter
 client = None
 try:
-    # Try environment variable first
-    api_key = os.getenv('OPENAI_API_KEY')
-    
-    # If not in environment, add your key directly here temporarily:
-    if not api_key:
-        api_key = "sk-your_actual_openai_key_here"  # ← Replace with your actual key
-    
-    if api_key and api_key != "sk-your_actual_openai_key_here":
-        client = OpenAI(api_key=api_key)
-        print("✅ OpenAI client initialized successfully")
+    api_key = os.getenv('OPENROUTER_API_KEY')
+    if api_key:
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            default_headers={
+                "HTTP-Referer": "http://localhost:3000",  # Your site URL
+                "X-Title": "InvoiceAccelerator"  # Your app name
+            }
+        )
+        print("✅ OpenRouter AI client initialized successfully")
     else:
-        print("⚠️ Please add your OpenAI API key to continue")
+        print("⚠️ OpenRouter API key not found - AI features disabled")
         client = None
 except Exception as e:
-    print(f"❌ OpenAI initialization failed: {e}")
+    print(f"❌ OpenRouter initialization failed: {e}")
     client = None
 # CORS configuration
 CORS(app, origins=["http://localhost:3000"])
@@ -465,28 +468,33 @@ def generate_ai_email():
             })
 
         prompt = f"""
-        Write a {tone} payment reminder email to {client_name} regarding their overdue invoice of ${invoice_amount}.
+        Write a {tone} payment reminder email to a client named {client_name} regarding their overdue invoice for R {invoice_amount}. 
         The invoice was due on {due_date} and is now {days_overdue} days overdue.
-        
+
         Requirements:
         - Keep it under 150 words
-        - Maintain professional business communication
+        - Use South African business English
         - Include a clear call-to-action for payment
         - Be firm but respectful
         - Offer assistance if needed
-        
+
         Tone: {tone}
         """
-
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="google/gemini-2.0-flash-exp:free",  # Working free model
             messages=[
-                {"role": "system", "content": "You are a professional accounts manager for a business. Write clear, effective payment reminder emails that maintain good client relationships while ensuring timely payments."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system", 
+                    "content": "You are a professional accounts manager. Write clear, professional payment reminder emails that maintain good client relationships while ensuring timely payments. Keep responses under 150 words."
+                },
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
             ],
             max_tokens=250,
             temperature=0.7
-        )
+)
 
         generated_email = response.choices[0].message.content
 
@@ -500,11 +508,23 @@ def generate_ai_email():
     except Exception as e:
         print(f"AI Email Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+        # After generating the email, you can add some post-processing:
+    if email_content and source == "ai":
+        # Add a professional signature
+        if "sincerely" in email_content.lower() or "best regards" in email_content.lower():
+            # Signature already included by AI
+            pass
+        else:
+            # Add professional signature
+            email_content += "\n\nBest regards,\nYour Accounts Team\nInvoiceAccelerator"
+        
+        # Ensure proper formatting
+        email_content = email_content.strip()
 
 @app.route('/api/ai/analyze-invoice', methods=['POST'])
 @cross_origin()
 def analyze_invoice():
-    """AI analysis of invoice patterns and recommendations"""
+    """AI analysis using OpenRouter"""
     try:
         data = request.get_json()
         invoice_data = data.get('invoices', [])
@@ -512,7 +532,7 @@ def analyze_invoice():
         if not client:
             return jsonify({
                 'success': False, 
-                'error': 'AI features unavailable. Please add OpenAI API key.'
+                'error': 'AI features unavailable.'
             })
 
         prompt = f"""
@@ -529,10 +549,16 @@ def analyze_invoice():
         """
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="google/gemini-pro:free",  # Free model via OpenRouter
             messages=[
-                {"role": "system", "content": "You are a financial analyst specializing in accounts receivable and cash flow optimization. Provide concise, actionable insights."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system", 
+                    "content": "You are a financial analyst specializing in accounts receivable and cash flow optimization. Provide concise, actionable insights."
+                },
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
             ],
             max_tokens=400,
             temperature=0.5
@@ -549,11 +575,11 @@ def analyze_invoice():
     except Exception as e:
         print(f"AI Analysis Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
+    
 @app.route('/api/ai/chat', methods=['POST'])
 @cross_origin()
 def ai_chat():
-    """AI Chat assistant for invoicing questions"""
+    """AI Chat assistant using OpenRouter"""
     try:
         data = request.get_json()
         user_message = data.get('message', '')
@@ -570,20 +596,23 @@ def ai_chat():
 
         # Build conversation context
         messages = [
-            {"role": "system", "content": """You are InvoiceAccelerator AI, a helpful assistant for invoicing and payment management. 
-            You help businesses with:
-            - Writing professional payment reminders
-            - Invoice template creation
-            - Payment follow-up strategies
-            - Cash flow optimization
-            - Client communication best practices
-            
-            Keep responses concise, helpful, and focused on invoicing and payments.
-            Offer practical advice and suggest features of InvoiceAccelerator when relevant."""}
+            {
+                "role": "system", 
+                "content": """You are InvoiceAccelerator AI, a helpful assistant for invoicing and payment management. 
+                You help businesses with:
+                - Writing professional payment reminders
+                - Invoice template creation
+                - Payment follow-up strategies
+                - Cash flow optimization
+                - Client communication best practices
+                
+                Keep responses concise, helpful, and focused on invoicing and payments.
+                Offer practical advice and suggest features of InvoiceAccelerator when relevant."""
+            }
         ]
 
         # Add conversation history for context
-        for msg in conversation_history[-6:]:  # Last 6 messages for context
+        for msg in conversation_history[-6:]:
             role = "user" if msg.get('sender') == 'user' else "assistant"
             messages.append({"role": role, "content": msg.get('text', '')})
 
@@ -591,7 +620,7 @@ def ai_chat():
         messages.append({"role": "user", "content": user_message})
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="google/gemini-2.0-flash-exp:free",  # Use the same working model
             messages=messages,
             max_tokens=150,
             temperature=0.7
@@ -607,7 +636,7 @@ def ai_chat():
     except Exception as e:
         print(f"AI Chat Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-    
+
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")
     print("💳 Available routes:")

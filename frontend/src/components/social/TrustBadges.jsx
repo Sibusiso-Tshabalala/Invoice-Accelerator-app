@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 
 const TrustBadges = () => {
   const badges = [
-    { text: '5,000+ Businesses', icon: '🏢' },
+    { text: '500+ SA Businesses', icon: '🏢' },
     { text: '98% Satisfaction', icon: '⭐' },
-    { text: '24/7 Support', icon: '🛡️' },
-    { text: 'SOC 2 Compliant', icon: '🔒' }
+    { text: '24/7 SA Support', icon: '🛡️' },
+    { text: 'SARS Compliant', icon: '🔒' }  
   ];
 
   return (

@@ -15,23 +15,23 @@ const Hero = () => {
     <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="text-center max-w-4xl">
         <motion.h1 
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold mb-6"
-        >
-          <span className="text-gradient">Revolutionize</span> Your{' '}
-          <span className="text-gradient">Invoicing</span>
-        </motion.h1>
-        
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8"
-        >
-          AI-powered invoicing that saves time, reduces errors, and gets you paid faster.
-        </motion.p>
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="text-5xl md:text-7xl font-bold mb-6"
+    >
+      <span className="text-gradient">Revolutionize</span> Your{' '}
+      <span className="text-gradient">South African</span> Invoicing
+    </motion.h1>
+    
+    <motion.p
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.2 }}
+      className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8"
+    >
+      AI-powered invoicing built for South African businesses. Save time, reduce errors, and get paid faster in Rands.
+    </motion.p> 
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}

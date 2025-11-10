@@ -16,10 +16,10 @@ const CTA = () => {
           className="glass dark:glass-dark p-12 rounded-3xl"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gradient">
-            Ready to Transform Your Invoicing?
+            Ready to Transform Your South African Invoicing?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Join thousands of businesses already using InvoiceAccelerator
+            Join hundreds of South African businesses already using InvoiceAccelerator
           </p>
           <Button variant="primary" className="text-lg px-10 py-4" onClick={handleGetStartedToday}>
             Get Started Today

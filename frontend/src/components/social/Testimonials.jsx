@@ -3,32 +3,31 @@ import { motion } from 'framer-motion';
 
 const Testimonials = () => {
   const testimonials = [
-    {
-      name: "Sarah Chen",
-      company: "TechGrowth Inc",
-      role: "CFO",
-      image: "👩‍💼",
-      text: "InvoiceAccelerator reduced our payment collection time by 70%. The AI email feature alone saved us 20 hours per month.",
-      results: "Payment time ⬇️ 70%"
-    },
-    {
-      name: "Marcus Rodriguez",
-      company: "ScaleFast Solutions",
-      role: "Operations Director", 
-      image: "👨‍💼",
-      text: "We onboarded 50+ clients seamlessly. The professional invoices and automated reminders made us look enterprise-grade.",
-      results: "Client onboarding ⬆️ 3x faster"
-    },
-    {
-      name: "Jennifer Kim",
-      company: "Creative Studio Co",
-      role: "Studio Manager",
-      image: "👩‍🎨",
-      text: "Finally, an invoicing tool that understands creative businesses. The custom branding made all the difference for our agency.",
-      results: "Brand consistency ✅ 100%"
-    }
-  ];
-
+  {
+    name: "Sarah Chen",
+    company: "TechGrowth SA",
+    role: "CFO",
+    image: "👩‍💼",
+    text: "InvoiceAccelerator reduced our payment collection time by 70%. The AI email feature alone saved us 20 hours per month in Johannesburg.",
+    results: "Payment time ⬇️ 70%"
+  },
+  {
+    name: "Marcus Rodriguez", 
+    company: "ScaleFast Solutions",
+    role: "Operations Director",
+    image: "👨‍💼",
+    text: "We onboarded 50+ clients across South Africa seamlessly. The professional invoices and automated reminders made us look enterprise-grade.",
+    results: "Client onboarding ⬆️ 3x faster"
+  },
+  {
+    name: "Jennifer Kim",
+    company: "Creative Studio Co",
+    role: "Studio Manager", 
+    image: "👩‍🎨",
+    text: "Finally, an invoicing tool that understands South African creative businesses. The custom branding made all the difference for our Cape Town agency.",
+    results: "Brand consistency ✅ 100%"
+  }
+];
   return (
     <section className="py-20 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

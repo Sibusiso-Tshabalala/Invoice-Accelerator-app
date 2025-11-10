@@ -2,23 +2,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const Features = () => {
-  const features = [
-    {
-      title: "AI-Powered",
-      description: "Smart invoice generation and automation",
-      icon: "🤖"
-    },
-    {
-      title: "Instant Payments",
-      description: "Get paid faster with integrated payment processing",
-      icon: "⚡"
-    },
-    {
-      title: "Real-time Analytics",
-      description: "Track your business performance with live insights",
-      icon: "📊"
-    }
-  ];
+const features = [
+  {
+    title: "AI-Powered for SA Businesses",
+    description: "Smart invoice generation tailored for South African tax requirements and business practices",
+    icon: "🤖"
+  },
+  {
+    title: "Instant ZAR Payments", 
+    description: "Get paid faster with South African payment processing and Rand-based invoicing",
+    icon: "⚡"
+  },
+  {
+    title: "Real-time SA Analytics",
+    description: "Track your business performance with insights relevant to the South African market",
+    icon: "📊"
+  }
+];
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
