@@ -9,10 +9,17 @@ from datetime import datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from flask_cors import CORS , cross_origin
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Load environment variables from .env file
 load_dotenv()
 
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
@@ -27,7 +34,10 @@ else:
     print("❌ WARNING: Using SQLite fallback")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 300,
+    'pool_pre_ping': True
+}
 # Initialize database and login manager
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -58,7 +68,10 @@ except Exception as e:
     print(f"❌ OpenRouter initialization failed: {e}")
     client = None
 # CORS configuration
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, 
+     origins=["http://localhost:3000"],
+     supports_credentials=True,
+     methods=["GET", "POST", "PUT", "DELETE"])
 
 # User model
 class User(UserMixin, db.Model):
@@ -636,7 +649,15 @@ def ai_chat():
     except Exception as e:
         print(f"AI Chat Error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
+def get_ai_client():
+    try:
+        if not client:
+            return None
+        # Test connection
+        client.models.list()
+        return client
+    except Exception:
+        return None
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")
     print("💳 Available routes:")
