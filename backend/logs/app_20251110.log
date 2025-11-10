@@ -9,3 +9,18 @@
  * Running on http://127.0.0.1:5000
  * Running on http://192.168.8.27:5000
 2025-11-10 13:02:09,734 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-11-10 13:25:52,330 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.8.27:5000
+2025-11-10 13:25:52,331 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-11-10 13:27:40,155 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.8.27:5000
+2025-11-10 13:27:40,157 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-11-10 16:03:54,133 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.8.27:5000
+2025-11-10 16:03:54,133 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
