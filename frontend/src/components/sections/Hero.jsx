@@ -3,6 +3,14 @@ import { motion } from 'framer-motion';
 import Button from '../ui/Button';
 
 const Hero = () => {
+  const handleGetStarted = () => {
+    alert('Getting started! Redirecting to signup...');
+  };
+
+  const handleViewDemo = () => {
+    alert('Showing demo! Redirecting to demo page...');
+  };
+
   return (
     <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="text-center max-w-4xl">
@@ -31,11 +39,11 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <Button variant="primary" className="text-lg px-8 py-4">
-            Start Free Trial
+          <Button variant="primary" className="text-lg px-8 py-4" onClick={handleGetStarted}>
+            Get Started Free
           </Button>
-          <Button variant="secondary" className="text-lg px-8 py-4">
-            View Demo
+          <Button variant="secondary" className="text-lg px-8 py-4" onClick={handleViewDemo}>
+            View Live Demo
           </Button>
         </motion.div>
       </div>

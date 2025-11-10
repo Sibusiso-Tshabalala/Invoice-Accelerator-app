@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Button from '../ui/Button';
 
 // Try to import usePayPal, but provide fallback if it fails
+<section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900"></section>
 let usePayPal;
 try {
   usePayPal = require('./PayPalProvider').usePayPal;

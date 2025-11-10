@@ -103,13 +103,13 @@ def send_email_via_sendgrid(to_email, subject, html_content):
         return False
 
 # Register PayPal blueprint if available
-try:
-    from routes.paypal_payments import paypal_payments
-    app.register_blueprint(paypal_payments, url_prefix='/api/paypal')
-    print("✅ PayPal payments blueprint registered")
-except ImportError as e:
-    print(f"⚠️ PayPal routes not available: {e}")
-
+#3try:
+   # from routes.paypal_payments import paypal_payments
+  #  app.register_blueprint(paypal_payments, url_prefix='/api/paypal')
+   # print("✅ PayPal payments blueprint registered")
+#except ImportError as e:
+  #  print(f"⚠️ PayPal routes not available: {e}")
+print("ℹ️ PayPal blueprint disabled - using simple endpoints in app.py")
 # Register invoices blueprint if available
 try:
     from routes.invoices import invoices
@@ -365,71 +365,25 @@ def paypal_test():
 
 @app.route('/api/paypal/create-payment', methods=['POST'])
 def create_payment():
-    print("🎯 PAYPAL CREATE-PAYMENT ENDPOINT HIT - START")
-    try:
-        # Test basic Python functionality first
-        print("🔧 Testing basic Python...")
-        test_var = "Python is working"
-        print(f"✅ {test_var}")
-        
-        # Get JSON data
-        data = request.get_json()
-        print("📦 Received data:", data)
-        
-        if not data:
-            print("❌ No JSON data received")
-            return jsonify({'error': 'No JSON data provided'}), 400
-            
-        plan_id = data.get('planId')
-        print("📋 Plan ID requested:", plan_id)
-        
-        if not plan_id:
-            print("❌ No planId provided")
-            return jsonify({'error': 'Plan ID is required'}), 400
-        
-        # Test if we can import paypalrestsdk
-        try:
-            print("🔧 Testing PayPal SDK import...")
-            import paypalrestsdk
-            print("✅ PayPal SDK import successful")
-        except ImportError as e:
-            print("❌ PayPal SDK import failed:", e)
-            return jsonify({'error': f'PayPal SDK not available: {str(e)}'}), 500
-        
-        # Test PayPal configuration
-        try:
-            print("🔧 Testing PayPal configuration...")
-            paypalrestsdk.configure({
-                "mode": "sandbox",
-                "client_id": "test_client_id",  # Use test values for now
-                "client_secret": "test_secret"
-            })
-            print("✅ PayPal configuration successful")
-        except Exception as e:
-            print("❌ PayPal configuration failed:", e)
-            # Continue anyway for testing
-        
-        # Return a simple success response for now
-        print("✅ Returning test success response")
-        response_data = {
-            'success': True,
-            'message': 'Payment endpoint working!',
-            'planId': plan_id,
-            'test_mode': True,
-            'approvalUrl': 'http://localhost:3000/payment-success'  # Local test URL
-        }
-        print("📤 Response data:", response_data)
-        
-        return jsonify(response_data)
-        
-    except Exception as e:
-        print("💥 UNEXPECTED ERROR in create-payment:")
-        print("Error type:", type(e).__name__)
-        print("Error message:", str(e))
-        import traceback
-        print("Full traceback:")
-        traceback.print_exc()  # This will show the complete error stack
-        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+    print("🎯 SIMULATED PAYPAL ENDPOINT HIT - NO REAL PAYPAL")
+    
+    # Get the request data
+    data = request.get_json()
+    plan_id = data.get('planId', 'unknown')
+    
+    print(f"📦 Simulating payment for plan: {plan_id}")
+    
+    # Return immediate success - NO EXTERNAL API CALLS AT ALL
+    return jsonify({
+        'success': True,
+        'message': '🎉 Payment simulation successful!',
+        'planId': plan_id,
+        'approvalUrl': 'http://localhost:3000',  # Redirect back to frontend
+        'test_mode': True,
+        'simulation': 'COMPLETELY BYPASSED PAYPAL API',
+        'status': 'active',
+        'features_unlocked': ['all_features']
+    })
     
 @app.route('/api/simple-payment', methods=['POST'])
 def simple_payment():
@@ -449,14 +403,34 @@ def simple_payment():
         print("💥 Simple payment error:", e)
         return jsonify({'error': str(e)}), 500
     
-@app.route('/payment-success')
-def payment_success():
+
+@app.route('/api/emergency-test', methods=['POST'])
+def emergency_test():
+    print("🚨 EMERGENCY TEST ENDPOINT HIT - NO TRY/CATCH")
+    data = request.get_json()
+    print(f"🚨 Emergency test received: {data}")
+    
+    # Direct return without any processing
     return jsonify({
         'success': True,
-        'message': 'Payment completed successfully! 🎉',
-        'redirect': 'from PayPal'
+        'message': 'EMERGENCY TEST WORKS!',
+        'data_received': data
     })
     
+
+@app.route('/payment-success')
+def payment_success():
+    return """
+    <html>
+        <head><title>Payment Success</title></head>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h1 style="color: green;">🎉 Payment Successful!</h1>
+            <p>Your payment has been processed successfully.</p>
+            <p>This is a simulation - real PayPal integration will be added later.</p>
+            <button onclick="window.close()">Close</button>
+        </body>
+    </html>
+    """
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")
     print("💳 Available routes:")

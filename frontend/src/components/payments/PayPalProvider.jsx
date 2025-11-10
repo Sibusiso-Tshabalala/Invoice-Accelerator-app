@@ -15,38 +15,28 @@ export const PayPalProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubscription = async (planId) => {
-    console.log('🎯 PAYPAL PROVIDER - handleSubscription called with plan:', planId);
+    console.log('🎯 Starting subscription for plan:', planId);
     setLoading(true);
     
     try {
-      // Test 1: Simple endpoint (no CORS issues)
-      console.log('🔗 Testing simple endpoint...');
-      const simpleResponse = await axios.post('http://localhost:5000/api/simple-payment', {
-        planId: planId,
-        test: 'frontend data'
-      });
-      console.log('✅ Simple endpoint successful:', simpleResponse.data);
-
-      // Test 2: PayPal endpoint
-      console.log('🔗 Testing PayPal endpoint...');
-      const paypalResponse = await axios.post('http://localhost:5000/api/paypal/create-payment', {
+      console.log('🔗 Calling simulated PayPal endpoint...');
+      const response = await axios.post('http://localhost:5000/api/paypal/create-payment', {
         planId: planId
       });
-      console.log('✅ PayPal endpoint successful:', paypalResponse.data);
-
-      // If both work, show success
-      alert(`✅ Both endpoints working! Plan: ${planId}`);
+      
+      console.log('✅ SUCCESS! Response:', response.data);
+      
+      // Show success message
+      alert(`🎉 SUCCESS! ${planId.toUpperCase()} plan activated!\n\nYou now have access to all features!`);
       
     } catch (error) {
-      console.error('❌ REQUEST FAILED:');
-      console.error('Error message:', error.message);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
+      console.error('❌ Payment failed:', error);
       
-      if (error.response?.status === 500) {
-        alert('❌ Server 500 Error - Check backend console for details');
+      // Show the actual error from backend
+      if (error.response?.data?.error) {
+        alert(`❌ Backend Error: ${error.response.data.error}`);
       } else {
-        alert(`Request failed: ${error.response?.data?.error || error.message}`);
+        alert('❌ Payment failed. Check console for details.');
       }
     } finally {
       setLoading(false);

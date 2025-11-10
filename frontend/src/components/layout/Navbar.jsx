@@ -1,10 +1,34 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Button from '../ui/Button';
-import { useTheme } from '../../contexts/ThemeContext'; // Add this import
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Navbar = () => {
-  const { isDark, toggleTheme } = useTheme(); // Now this will work
+  const { isDark, toggleTheme } = useTheme();
+
+  const handleNavigation = (page) => {
+    // For now, show alerts. We'll add proper routing next.
+    switch(page) {
+      case 'features':
+        window.location.href = '/#features';
+        break;
+      case 'pricing':
+        window.location.href = '/#pricing';
+        break;
+      case 'about':
+        alert('Navigating to About page');
+        break;
+      case 'contact':
+        alert('Navigating to Contact page');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleGetStarted = () => {
+    alert('Getting started! Redirecting to signup...');
+  };
 
   return (
     <motion.nav 
@@ -17,20 +41,27 @@ const Navbar = () => {
           {/* Logo */}
           <motion.div 
             whileHover={{ scale: 1.05 }}
-            className="text-2xl font-bold text-gradient"
+            className="text-2xl font-bold text-gradient cursor-pointer"
+            onClick={() => window.location.href = '/'}
           >
             InvoiceAccelerator
           </motion.div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex space-x-8">
-            {['Features', 'Pricing', 'About', 'Contact'].map((item) => (
+            {[
+              { name: 'Features', id: 'features' },
+              { name: 'Pricing', id: 'pricing' },
+              { name: 'About', id: 'about' },
+              { name: 'Contact', id: 'contact' }
+            ].map((item) => (
               <motion.a
-                key={item}
+                key={item.name}
                 whileHover={{ scale: 1.1 }}
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
+                onClick={() => handleNavigation(item.id)}
               >
-                {item}
+                {item.name}
               </motion.a>
             ))}
           </div>
@@ -43,7 +74,7 @@ const Navbar = () => {
             >
               {isDark ? '🌙' : '☀️'}
             </button>
-            <Button>Get Started</Button>
+            <Button onClick={handleGetStarted}>Get Started</Button>
           </div>
         </div>
       </div>

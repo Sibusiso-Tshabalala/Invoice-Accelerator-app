@@ -3,6 +3,10 @@ import { motion } from 'framer-motion';
 import Button from '../ui/Button';
 
 const CTA = () => {
+  const handleGetStartedToday = () => {
+    alert('Starting today! Redirecting to signup...');
+  };
+
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto text-center">
@@ -17,7 +21,7 @@ const CTA = () => {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Join thousands of businesses already using InvoiceAccelerator
           </p>
-          <Button variant="primary" className="text-lg px-10 py-4">
+          <Button variant="primary" className="text-lg px-10 py-4" onClick={handleGetStartedToday}>
             Get Started Today
           </Button>
         </motion.div>

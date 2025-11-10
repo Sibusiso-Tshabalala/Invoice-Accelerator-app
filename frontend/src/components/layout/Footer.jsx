@@ -1,5 +1,6 @@
 import React from 'react';
 
+<section id="features" className="py-20 px-4 sm:px-6 lg:px-8"></section>
 const Footer = () => {
   return (
     <footer className="glass dark:glass-dark mt-20">
