@@ -431,6 +431,175 @@ def payment_success():
         </body>
     </html>
     """
+    
+# AI-Powered Features
+@app.route('/api/ai/generate-email', methods=['POST'])
+@cross_origin()
+def generate_ai_email():
+    """Generate professional payment reminder email using AI"""
+    try:
+        data = request.get_json()
+        
+        client_name = data.get('client_name')
+        invoice_amount = data.get('invoice_amount')
+        due_date = data.get('due_date')
+        days_overdue = data.get('days_overdue', 0)
+        tone = data.get('tone', 'professional')  # professional, friendly, firm
+        
+        if not client_name or not invoice_amount:
+            return jsonify({'success': False, 'error': 'Client name and amount are required'}), 400
+
+        # Check if OpenAI is available
+        if not client:
+            return jsonify({
+                'success': False, 
+                'error': 'AI features are currently unavailable. Please add your OpenAI API key.'
+            })
+
+        prompt = f"""
+        Write a {tone} payment reminder email to {client_name} regarding their overdue invoice of ${invoice_amount}.
+        The invoice was due on {due_date} and is now {days_overdue} days overdue.
+        
+        Requirements:
+        - Keep it under 150 words
+        - Maintain professional business communication
+        - Include a clear call-to-action for payment
+        - Be firm but respectful
+        - Offer assistance if needed
+        
+        Tone: {tone}
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a professional accounts manager for a business. Write clear, effective payment reminder emails that maintain good client relationships while ensuring timely payments."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=250,
+            temperature=0.7
+        )
+
+        generated_email = response.choices[0].message.content
+
+        return jsonify({
+            'success': True,
+            'email': generated_email,
+            'tone': tone,
+            'word_count': len(generated_email.split())
+        })
+
+    except Exception as e:
+        print(f"AI Email Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/analyze-invoice', methods=['POST'])
+@cross_origin()
+def analyze_invoice():
+    """AI analysis of invoice patterns and recommendations"""
+    try:
+        data = request.get_json()
+        invoice_data = data.get('invoices', [])
+        
+        if not client:
+            return jsonify({
+                'success': False, 
+                'error': 'AI features unavailable. Please add OpenAI API key.'
+            })
+
+        prompt = f"""
+        Analyze this invoice data and provide business insights:
+        {json.dumps(invoice_data, indent=2)}
+        
+        Provide:
+        1. Payment pattern analysis
+        2. Client payment behavior insights
+        3. Recommendations for improving cash flow
+        4. Risk assessment for late payments
+        
+        Keep response under 300 words and focused on actionable insights.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a financial analyst specializing in accounts receivable and cash flow optimization. Provide concise, actionable insights."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=400,
+            temperature=0.5
+        )
+
+        analysis = response.choices[0].message.content
+
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+
+    except Exception as e:
+        print(f"AI Analysis Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ai/chat', methods=['POST'])
+@cross_origin()
+def ai_chat():
+    """AI Chat assistant for invoicing questions"""
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        conversation_history = data.get('conversation_history', [])
+
+        if not user_message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+
+        if not client:
+            return jsonify({
+                'success': False, 
+                'error': 'AI chat is currently unavailable.'
+            })
+
+        # Build conversation context
+        messages = [
+            {"role": "system", "content": """You are InvoiceAccelerator AI, a helpful assistant for invoicing and payment management. 
+            You help businesses with:
+            - Writing professional payment reminders
+            - Invoice template creation
+            - Payment follow-up strategies
+            - Cash flow optimization
+            - Client communication best practices
+            
+            Keep responses concise, helpful, and focused on invoicing and payments.
+            Offer practical advice and suggest features of InvoiceAccelerator when relevant."""}
+        ]
+
+        # Add conversation history for context
+        for msg in conversation_history[-6:]:  # Last 6 messages for context
+            role = "user" if msg.get('sender') == 'user' else "assistant"
+            messages.append({"role": role, "content": msg.get('text', '')})
+
+        # Add current message
+        messages.append({"role": "user", "content": user_message})
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=150,
+            temperature=0.7
+        )
+
+        ai_response = response.choices[0].message.content
+
+        return jsonify({
+            'success': True,
+            'response': ai_response
+        })
+
+    except Exception as e:
+        print(f"AI Chat Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
 if __name__ == '__main__':
     print("🚀 Server starting on http://localhost:5000")
     print("💳 Available routes:")
