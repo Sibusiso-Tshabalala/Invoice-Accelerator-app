@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Button from '../ui/Button';
 
 // Create a custom hook for PayPal with better error handling
+// Create a custom hook for PayPal with better error handling
 const usePayPal = () => {
   const [loading, setLoading] = useState(false);
 
@@ -11,44 +12,7 @@ const usePayPal = () => {
       setLoading(true);
       console.log('🎯 Starting subscription for plan:', planId);
       
-      // Try the new PayPal subscription endpoint first
-      const response = await fetch('/api/paypal/create-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ planId })
-      });
-
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server returned non-JSON response');
-      }
-
-      const data = await response.json();
-      
-      if (data.success && data.approval_url) {
-        console.log('✅ PayPal subscription created, redirecting...');
-        window.location.href = data.approval_url;
-      } else {
-        // Fallback to the working simulation endpoint
-        console.log('🔄 Falling back to simulation endpoint...');
-        await handleSimulationPayment(planId);
-      }
-    } catch (error) {
-      console.error('PayPal endpoint failed, using simulation:', error);
-      // Use the working simulation endpoint
-      await handleSimulationPayment(planId);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Use the working simulation endpoint that we know works
-  const handleSimulationPayment = async (planId) => {
-    try {
+      // Use the working simulation endpoint (no authentication required)
       const response = await fetch('/api/paypal/create-payment', {
         method: 'POST',
         headers: {
@@ -60,16 +24,19 @@ const usePayPal = () => {
       const data = await response.json();
       
       if (data.success) {
+        console.log('✅ Payment simulation successful');
         alert(`🎉 Simulation: Starting ${planId} plan subscription!\n\nThis is a demo. In production, you would be redirected to PayPal.`);
         
-        // Optional: Redirect to success page for better UX
+        // Optional: Redirect to success page
         // window.location.href = '/payment-success';
       } else {
         alert(`❌ Payment failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Simulation payment failed:', error);
+      console.error('Payment error:', error);
       alert(`🎉 Starting ${planId} plan subscription!\n\nThis is a demo. Real PayPal integration coming soon.`);
+    } finally {
+      setLoading(false);
     }
   };
 

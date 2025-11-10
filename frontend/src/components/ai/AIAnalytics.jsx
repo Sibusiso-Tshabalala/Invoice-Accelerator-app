@@ -17,7 +17,7 @@ const AIAnalytics = () => {
         { client: "Client D", amount: 3200, due_date: "2024-01-25", status: "paid", paid_date: "2024-01-28" }
       ];
 
-      const response = await axios.post('http://localhost:5000/api/ai/analyze-invoice', {
+      const response = await axios.post('/api/ai/analyze-invoice', {
         invoices: sampleInvoices
       });
 
