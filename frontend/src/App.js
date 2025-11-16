@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PayPalProvider } from './components/payments/PayPalProvider';
 import Navbar from './components/layout/Navbar';
@@ -14,32 +15,51 @@ import AIAnalytics from './components/ai/AIAnalytics';
 import PricingCards from './components/payments/PricingCards';
 import CTA from './components/sections/CTA';
 import Footer from './components/layout/Footer';
+import About from './components/pages/About';
+import Contact from './components/pages/Contact';
+import Demo from './components/pages/Demo';
 import './index.css';
 
+function HomePage() {
+  return (
+    <>
+      <Hero />
+      <TrustBadges />
+      <Features />
+      <EmailGenerator />
+      <AIAnalytics />
+      <ROICalculator />
+      <Testimonials />
+      <FeatureComparison />
+      <PricingCards />
+      <CTA />
+    </>
+  );
+}
 
 function App() {
   return (
-    <ThemeProvider>
-      <PayPalProvider>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
-          <AIChatAssistant />
-          <Navbar />
-          <main>
-            <Hero />
-            <TrustBadges />
-            <Features />
-            <EmailGenerator />
-            <AIAnalytics />
-            <ROICalculator />
-            <Testimonials />
-            <FeatureComparison />
-            <PricingCards />
-            <CTA />
-          </main>
-          <Footer />
-        </div>
-      </PayPalProvider>
-    </ThemeProvider>
+    <Router>
+      <ThemeProvider>
+        <PayPalProvider>
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
+            <AIChatAssistant />
+            <Navbar />
+            <main>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/demo" element={<Demo />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/pricing" element={<PricingCards />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </PayPalProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
 

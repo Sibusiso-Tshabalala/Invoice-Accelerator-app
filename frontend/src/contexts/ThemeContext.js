@@ -14,35 +14,35 @@ export const ThemeProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Check system preference or saved theme
+    // Check if user has a theme preference in localStorage
     const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
+    if (savedTheme) {
+      setIsDark(savedTheme === 'dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      // Check system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDark(prefersDark);
     }
   }, []);
 
+  useEffect(() => {
+    // Update DOM and localStorage when theme changes
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
   const toggleTheme = () => {
-    setIsDark(prev => {
-      const newTheme = !prev;
-      if (newTheme) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
-      return newTheme;
-    });
+    setIsDark(!isDark);
   };
 
   const value = {
     isDark,
-    toggleTheme,
+    toggleTheme
   };
 
   return (
@@ -51,3 +51,5 @@ export const ThemeProvider = ({ children }) => {
     </ThemeContext.Provider>
   );
 };
+
+export default ThemeContext;

@@ -1,33 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
-import { useTheme } from '../../contexts/ThemeContext';
+// Fix this import - use the correct path
+import { useTheme } from '../../contexts/ThemeContext'; // Changed from '../../hooks/useTheme'
 
 const Navbar = () => {
   const { isDark, toggleTheme } = useTheme();
-
-  const handleNavigation = (page) => {
-    // For now, show alerts. We'll add proper routing next.
-    switch(page) {
-      case 'features':
-        window.location.href = '/#features';
-        break;
-      case 'pricing':
-        window.location.href = '/#pricing';
-        break;
-      case 'about':
-        alert('Navigating to About page');
-        break;
-      case 'contact':
-        alert('Navigating to Contact page');
-        break;
-      default:
-        break;
-    }
-  };
+  const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    alert('Getting started! Redirecting to signup...');
+    navigate('/pricing');
   };
 
   return (
@@ -40,30 +23,62 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="text-2xl font-bold text-gradient cursor-pointer"
-            onClick={() => window.location.href = '/'}
-          >
-            InvoiceAccelerator
-          </motion.div>
+  whileHover={{ scale: 1.05 }}
+  className="flex items-center space-x-3 cursor-pointer"
+  onClick={() => navigate('/')}
+>
+  <img 
+    src="/logo.svg" 
+    alt="InvoiceAccelerator" 
+    className="w-8 h-8"
+  />
+  <span className="text-2xl font-bold text-gradient">
+    InvoiceAccelerator
+  </span>
+</motion.div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex space-x-8">
-            {[
-              { name: 'Features', id: 'features' },
-              { name: 'Pricing', id: 'pricing' },
-              { name: 'About', id: 'about' },
-              { name: 'Contact', id: 'contact' }
-            ].map((item) => (
-              <motion.a
-                key={item.name}
+            <Link to="/features">
+              <motion.span
                 whileHover={{ scale: 1.1 }}
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
-                onClick={() => handleNavigation(item.id)}
               >
-                {item.name}
-              </motion.a>
-            ))}
+                Features
+              </motion.span>
+            </Link>
+            <Link to="/pricing">
+              <motion.span
+                whileHover={{ scale: 1.1 }}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
+              >
+                Pricing
+              </motion.span>
+            </Link>
+            <Link to="/about">
+              <motion.span
+                whileHover={{ scale: 1.1 }}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
+              >
+                About
+              </motion.span>
+            </Link>
+            <Link to="/contact">
+              <motion.span
+                whileHover={{ scale: 1.1 }}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
+              >
+                Contact
+              </motion.span>
+            </Link>
+            <Link to="/demo">
+              <motion.span
+                whileHover={{ scale: 1.1 }}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
+              >
+                Demo
+              </motion.span>
+            </Link>
           </div>
 
           {/* Theme Toggle & CTA */}
