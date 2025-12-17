@@ -1,23 +1,26 @@
-// frontend/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import InvoiceCreator from './components/invoice/InvoiceCreator';
-import './index.css';
 
 function App() {
   return (
     <Router>
-      <div className="app">
-        <header style={{ padding: '20px', background: '#3b82f6', color: 'white' }}>
+      <div>
+        <header style={{
+          padding: '20px',
+          background: '#3b82f6',
+          color: 'white',
+          textAlign: 'center'
+        }}>
           <h1>Invoice Accelerator</h1>
+          <p>Create and send invoices via WhatsApp, SMS, or Email</p>
         </header>
-        
-        <main style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+
+        <main style={{ padding: '20px' }}>
           <Routes>
             <Route path="/" element={
-              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <h2>Create and Send Invoices</h2>
-                <p>WhatsApp • SMS • Email</p>
+              <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                <h2>Get Started</h2>
                 <a 
                   href="/create" 
                   style={{
@@ -30,16 +33,21 @@ function App() {
                     marginTop: '20px'
                   }}
                 >
-                  Create Invoice
+                  Create Your First Invoice
                 </a>
               </div>
             } />
             <Route path="/create" element={<InvoiceCreator />} />
           </Routes>
         </main>
-        
-        <footer style={{ textAlign: 'center', padding: '20px', background: '#f3f4f6', marginTop: '40px' }}>
-          <p>Invoice Accelerator © 2024</p>
+
+        <footer style={{
+          textAlign: 'center',
+          padding: '20px',
+          background: '#f3f4f6',
+          marginTop: '40px'
+        }}>
+          <p>© 2024 Invoice Accelerator</p>
         </footer>
       </div>
     </Router>
