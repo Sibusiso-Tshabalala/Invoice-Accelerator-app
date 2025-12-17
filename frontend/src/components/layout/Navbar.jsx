@@ -81,18 +81,11 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Theme Toggle & CTA */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg glass dark:glass-dark"
-            >
-              {isDark ? '🌙' : '☀️'}
-            </button>
+          
             <Button onClick={handleGetStarted}>Get Started</Button>
           </div>
         </div>
-      </div>
+
     </motion.nav>
   );
 };

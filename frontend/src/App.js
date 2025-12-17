@@ -1,64 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { PayPalProvider } from './components/payments/PayPalProvider';
 import Navbar from './components/layout/Navbar';
-import Hero from './components/sections/Hero';
-import TrustBadges from './components/social/TrustBadges';
-import Features from './components/sections/Features';
-import ROICalculator from './components/business/ROICalculator';
-import Testimonials from './components/social/Testimonials';
-import FeatureComparison from './components/business/FeatureComparison';
-import EmailGenerator from './components/ai/EmailGenerator';
-import AIChatAssistant from './components/ai/AIChatAssistant';
-import AIAnalytics from './components/ai/AIAnalytics';
-import PricingCards from './components/payments/PricingCards';
-import CTA from './components/sections/CTA';
 import Footer from './components/layout/Footer';
-import About from './components/pages/About';
-import Contact from './components/pages/Contact';
-import Demo from './components/pages/Demo';
+import InvoiceCreator from './components/invoice/InvoiceCreator';
 import './index.css';
-
-function HomePage() {
-  return (
-    <>
-      <Hero />
-      <TrustBadges />
-      <Features />
-      <EmailGenerator />
-      <AIAnalytics />
-      <ROICalculator />
-      <Testimonials />
-      <FeatureComparison />
-      <PricingCards />
-      <CTA />
-    </>
-  );
-}
 
 function App() {
   return (
     <Router>
-      <ThemeProvider>
-        <PayPalProvider>
-          <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
-            <AIChatAssistant />
-            <Navbar />
-            <main>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/features" element={<Features />} />
-                <Route path="/pricing" element={<PricingCards />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </PayPalProvider>
-      </ThemeProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={
+              <div className="text-center py-12">
+                <h1 className="text-4xl font-bold text-gray-800 mb-4">
+                  Get Paid Faster in South Africa
+                </h1>
+                <p className="text-gray-600 mb-8">
+                  Create invoices and send payment reminders via WhatsApp, SMS, or Email
+                </p>
+                <a 
+                  href="/create" 
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                >
+                  Create Your First Invoice
+                </a>
+              </div>
+            } />
+            <Route path="/create" element={<InvoiceCreator />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </Router>
   );
 }
