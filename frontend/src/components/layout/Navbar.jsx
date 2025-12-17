@@ -1,92 +1,35 @@
+// frontend/src/components/layout/Navbar.jsx
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import Button from '../ui/Button';
-// Fix this import - use the correct path
-import { useTheme } from '../../contexts/ThemeContext'; // Changed from '../../hooks/useTheme'
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
-  const { isDark, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    navigate('/pricing');
-  };
-
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="glass dark:glass-dark sticky top-0 z-50"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <motion.div 
-  whileHover={{ scale: 1.05 }}
-  className="flex items-center space-x-3 cursor-pointer"
-  onClick={() => navigate('/')}
->
-  <img 
-    src="/logo.svg" 
-    alt="InvoiceAccelerator" 
-    className="w-8 h-8"
-  />
-  <span className="text-2xl font-bold text-gradient">
-    InvoiceAccelerator
-  </span>
-</motion.div>
-
-          {/* Navigation Links */}
-          <div className="hidden md:flex space-x-8">
-            <Link to="/features">
-              <motion.span
-                whileHover={{ scale: 1.1 }}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
-              >
-                Features
-              </motion.span>
-            </Link>
-            <Link to="/pricing">
-              <motion.span
-                whileHover={{ scale: 1.1 }}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
-              >
-                Pricing
-              </motion.span>
-            </Link>
-            <Link to="/about">
-              <motion.span
-                whileHover={{ scale: 1.1 }}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
-              >
-                About
-              </motion.span>
-            </Link>
-            <Link to="/contact">
-              <motion.span
-                whileHover={{ scale: 1.1 }}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
-              >
-                Contact
-              </motion.span>
-            </Link>
-            <Link to="/demo">
-              <motion.span
-                whileHover={{ scale: 1.1 }}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer font-medium"
-              >
-                Demo
-              </motion.span>
-            </Link>
-          </div>
-
-          
-            <Button onClick={handleGetStarted}>Get Started</Button>
-          </div>
-        </div>
-
-    </motion.nav>
+    <nav style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '16px 20px',
+      background: '#ffffff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3b82f6' }}>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          InvoiceAccelerator
+        </Link>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <Link to="/create" style={{
+          background: '#3b82f6',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '4px',
+          textDecoration: 'none'
+        }}>
+          Create Invoice
+        </Link>
+      </div>
+    </nav>
   );
 };
 

@@ -1,37 +1,46 @@
-import React, { useState } from 'react';
+// frontend/src/App.js
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
 import InvoiceCreator from './components/invoice/InvoiceCreator';
 import './index.css';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="container mx-auto px-4 py-8">
+      <div className="app">
+        <header style={{ padding: '20px', background: '#3b82f6', color: 'white' }}>
+          <h1>Invoice Accelerator</h1>
+        </header>
+        
+        <main style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
           <Routes>
             <Route path="/" element={
-              <div className="text-center py-12">
-                <h1 className="text-4xl font-bold text-gray-800 mb-4">
-                  Get Paid Faster in South Africa
-                </h1>
-                <p className="text-gray-600 mb-8">
-                  Create invoices and send payment reminders via WhatsApp, SMS, or Email
-                </p>
+              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <h2>Create and Send Invoices</h2>
+                <p>WhatsApp • SMS • Email</p>
                 <a 
                   href="/create" 
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                  style={{
+                    display: 'inline-block',
+                    background: '#10b981',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    marginTop: '20px'
+                  }}
                 >
-                  Create Your First Invoice
+                  Create Invoice
                 </a>
               </div>
             } />
             <Route path="/create" element={<InvoiceCreator />} />
           </Routes>
         </main>
-        <Footer />
+        
+        <footer style={{ textAlign: 'center', padding: '20px', background: '#f3f4f6', marginTop: '40px' }}>
+          <p>Invoice Accelerator © 2024</p>
+        </footer>
       </div>
     </Router>
   );
