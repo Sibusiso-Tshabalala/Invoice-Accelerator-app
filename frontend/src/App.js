@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import InvoiceCreator from './components/invoice/InvoiceCreator';
+import InvoiceCreator from './components/invoice/InvoiceCreator.jsx';
 
 function App() {
   return (
     <Router>
-      <div>
+      <div> 
         <header style={{
           padding: '20px',
           background: '#3b82f6',
